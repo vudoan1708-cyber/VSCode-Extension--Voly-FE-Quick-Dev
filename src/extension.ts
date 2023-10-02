@@ -10,13 +10,11 @@ import Terminal from './terminal';
 import ExpressApp from './server';
 
 // Constant
-import { DEV_BUILD_FOLDER, DEV_BUILD_JSON } from './constants';
+import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
 
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
 	const extension = new FrontendQuickDevExtension(context);
-
-	vscode.window.showInformationMessage('volyfequickdev is now running...');
 
 	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
 		extension.toggleExtensionState(true);
@@ -28,6 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
+
+	vscode.window.showInformationMessage('volyfequickdev is now running...');
 
 	context.subscriptions.push(disposable1, disposable2);
 }
@@ -62,6 +62,12 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
+		// Check if single file disable
+		if (document.getText().includes(DISABLE_KEYWORD)) {
+			console.warn(`volyfequickdev has been disabled on ${document.fileName}`);
+			return;
+		}
+
 		vscode.window.showInformationMessage('Instantiating and building relevant component(s)...');
 
 		// Instantiate a custom terminal
@@ -74,7 +80,6 @@ class FrontendQuickDevExtension {
 		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies to extension local workspace...');
 
 		// remove existing file and folder before generating
-		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_JSON), { recursive: true, force: true });
 		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_FOLDER), { recursive: true, force: true });
 
 		// Locate the root directory
@@ -83,12 +88,10 @@ class FrontendQuickDevExtension {
 			?.map((folder) => folder.uri.fsPath)
 			?.find((fsPath) => fileName?.startsWith(fsPath));
 
-		const devBuildsJson = vscode.Uri.file(`${root}/${DEV_BUILD_JSON}`);
 		const devBuildsFolder = vscode.Uri.file(`${root}/build`);
 
-		await vscode.workspace.fs.copy(devBuildsJson, vscode.Uri.file(path.join(__dirname, '..', DEV_BUILD_JSON)), { overwrite: true });
 		await vscode.workspace.fs.copy(devBuildsFolder, vscode.Uri.file(path.join(__dirname, '..', DEV_BUILD_FOLDER)), { overwrite: true });
-		vscode.window.showInformationMessage('dev-build.json file and the built file(s) are now fetchable via /dev-builds endpoint...');
+		vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
 	}
 
 	public toggleExtensionState(value: boolean) {

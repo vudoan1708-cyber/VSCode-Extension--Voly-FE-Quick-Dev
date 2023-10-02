@@ -57,12 +57,13 @@ export default class ExpressApp {
         const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
 
         if (dir.length > 0) {
-          res.json(dir);
+          res.json(dir.filter((file) => path.extname(file) !== '.map'));
           return;
         }
         res.json([]);
       } catch (ex) {
-        res.json(ex);
+        console.error(ex);
+        res.json([]);
       }
     });
   }

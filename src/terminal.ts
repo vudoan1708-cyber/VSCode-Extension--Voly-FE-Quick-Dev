@@ -17,6 +17,10 @@ export default class Terminal {
     });
   }
 
+  public get name() {
+    return this._instance.name;
+  }
+
   public show() {
     this._instance.show();
   }
@@ -25,7 +29,7 @@ export default class Terminal {
     this._instance.sendText(text);
   }
 
-  public async close() {
+  public async close(): Promise<vscode.TerminalExitStatus> {
     // Reference: https://stackoverflow.com/questions/55943439/how-to-wait-until-vscode-windows-terminal-operation-is-over
     this.sendText('exit');
     return new Promise((resolve, reject) => {
@@ -37,7 +41,7 @@ export default class Terminal {
             resolve(this._instance.exitStatus);
             return;
           }
-          reject("Terminal exited with undefined status");
+          reject('Terminal exited with undefined status');
         }
       });
     });

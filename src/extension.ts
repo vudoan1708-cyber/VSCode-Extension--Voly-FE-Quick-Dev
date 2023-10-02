@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Classes
-import Terminal from './terminal';
+import TerminalFactory from './terminalFactory';
 import ExpressApp from './server';
 
 // Constant
@@ -14,7 +14,7 @@ import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
 
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
-	const extension = new FrontendQuickDevExtension(context);
+	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
 
 	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
 		extension.toggleExtensionState(true);
@@ -23,13 +23,13 @@ export function activate(context: vscode.ExtensionContext) {
 		extension.toggleExtensionState(false);
 	});
 
-	vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable3 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
 	vscode.window.showInformationMessage('volyfequickdev is now running...');
 
-	context.subscriptions.push(disposable1, disposable2);
+	context.subscriptions.push(disposable1, disposable2, disposable3);
 }
 
 // this method is called when your extension is deactivated
@@ -37,9 +37,11 @@ export function deactivate() {}
 
 class FrontendQuickDevExtension {
 	private _context: vscode.ExtensionContext;
+	private _terminalFactoryInstance: TerminalFactory;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor(context: vscode.ExtensionContext, terminalFactory: TerminalFactory) {
 		this._context = context;
+		this._terminalFactoryInstance = terminalFactory;
 
 		// Instantiate an express app
 		const expressApp = new ExpressApp();
@@ -62,22 +64,28 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
+		const savedFileName = path.basename(document.fileName);
+
 		// Check if single file disable
 		if (document.getText().includes(DISABLE_KEYWORD)) {
-			console.warn(`volyfequickdev has been disabled on ${document.fileName}`);
+			console.warn(`volyfequickdev has been disabled on ${savedFileName}`);
 			return;
 		}
 
 		vscode.window.showInformationMessage('Instantiating and building relevant component(s)...');
 
 		// Instantiate a custom terminal
-		const terminal = new Terminal('volyfequickdev terminal');
-		terminal.show();
+		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`);
 		terminal.sendText(`npm run instantiation-scripts-gen --component=${document.fileName}`);
 		terminal.sendText('npm run build-dev');
-		await terminal.close();
+		const status = await this._terminalFactoryInstance.terminate(terminal);
 
-		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies to extension local workspace...');
+		// If user forcibly close the terminal or if the reason for closing a terminal is not naturally by the shell process
+		if (status.code === undefined || status.reason !== 2) {
+			return;
+		}
+
+		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies to the extension\'s local workspace...');
 
 		// remove existing file and folder before generating
 		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_FOLDER), { recursive: true, force: true });

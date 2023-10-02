@@ -44,17 +44,12 @@ class FrontendQuickDevExtension {
 		// Instantiate an express app
 		const expressApp = new ExpressApp();
 		expressApp.initialiseRoutes();
+		expressApp.serveStatic();
 	}
 
 	private _isEnabled() {
 		return !!this._context.globalState.get('volyfequickdev_enabled', true);
 	}
-	private _writeFile = (fullPath: string, fileName: string, content: string) => {
-		if (!fs.existsSync(fullPath)) {
-			fs.mkdirSync(fullPath);
-		}
-		fs.writeFileSync(path.join(fullPath, fileName), content);
-	};
 
 	public async run(document: vscode.TextDocument) {
 		if (document.languageId !== 'svelte') {

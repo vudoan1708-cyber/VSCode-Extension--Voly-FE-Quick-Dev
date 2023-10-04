@@ -3,7 +3,7 @@
 	"displayName": "Voly FE Quick Dev",
 	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file)",
 	"icon": "./icon/voly.png",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.82.0"
 	},
@@ -40,7 +40,11 @@
 			},
 			{
 				"command": "volyfequickdev.refresh-entry",
-				"title": "Refresh"
+				"title": "Refresh",
+				"icon": {
+					"light": "icon/light/refresh.svg",
+					"dark": "icon/dark/refresh.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -52,6 +56,12 @@
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "volyfequickdev-devBuildsFolder-explorer",
+				"contents": "No built files found."
+			}
+		],
 		"views": {
       "volyfequickdev-devBuildsFolder-explorer": [
         {
@@ -63,6 +73,13 @@
       ]
     },
 		"menus": {
+			"view/title": [
+        {
+					"command": "volyfequickdev.refresh-entry",
+					"when": "view == volyfequickdev-devBuildsFolder-explorer",
+					"group": "navigation"
+        }
+    	],
 			"view/item/context": [
 				{
 					"command": "volyfequickdev.remove-dev-builds-entry",

@@ -14,13 +14,21 @@ import FolderView, { BuiltFile } from './ui/folderView';
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
 
 let rootDirectory: string | undefined;
+const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
 	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
 
-	const disposable = vscode.window.registerTreeDataProvider('volyfequickdev-devBuildsFolder-explorer', folderViewProvider);
+	const treeView = vscode.window.createTreeView('volyfequickdev-devBuildsFolder-explorer', {
+		treeDataProvider: folderViewProvider,
+		canSelectMany: true,
+	});
+	let multiSelectedTreeItems: Readonly<BuiltFile[]>	= [];
+	const disposable = treeView.onDidChangeSelection((e) => {
+		multiSelectedTreeItems = e.selection;
+	});
 
 	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
 		extension.toggleExtensionState(true);
@@ -35,13 +43,18 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	const disposable4 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-folder', () => {
-		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_FOLDER), { recursive: true, force: true });
+		fs.rmSync(pathToDevBuildsFolder, { recursive: true, force: true });
 		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
 		vscode.window.showInformationMessage('The folder has been removed');
 	});
 	const disposable5 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-entry', (node: BuiltFile) => {
-		if (node.label === DEV_BUILD_FOLDER) {
+		// If number of selected items equals the total number of files in the dev-builds folder, then remove all
+		if (multiSelectedTreeItems.length === fs.readdirSync(pathToDevBuildsFolder).length) {
 			vscode.commands.executeCommand('volyfequickdev.remove-dev-builds-folder');
+		} else if (multiSelectedTreeItems.length > 1) {
+			multiSelectedTreeItems.forEach((file) => {
+				fs.rmSync(file.fullPath, { force: true });
+			});
 		} else {
 			fs.rmSync(node.fullPath, { force: true });
 		}
@@ -134,7 +147,7 @@ class FrontendQuickDevExtension {
 
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 
-		await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(path.join(__dirname, '..', DEV_BUILD_FOLDER)), { overwrite: true });
+		await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
 		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
 		vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
 	}

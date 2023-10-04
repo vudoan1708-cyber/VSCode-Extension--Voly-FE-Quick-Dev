@@ -8,6 +8,7 @@ import path from 'path';
 // Classes
 import TerminalFactory from './terminalFactory';
 import ExpressApp from './server';
+import FolderView, { BuiltFile } from './ui/folderView';
 
 // Constant
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
@@ -17,6 +18,9 @@ let rootDirectory: string | undefined;
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
 	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
+	const folderViewProvider = new FolderView(path.dirname(__dirname));
+
+	const disposable = vscode.window.registerTreeDataProvider('volyfequickdev-devBuildsFolder-explorer', folderViewProvider);
 
 	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
 		extension.toggleExtensionState(true);
@@ -26,18 +30,40 @@ export function activate(context: vscode.ExtensionContext) {
 		extension.toggleExtensionState(false);
 		vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
 	});
-	const disposable3 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-folder', () => {
-		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_FOLDER), { recursive: true, force: true });
-		vscode.window.showInformationMessage('The folder has been removed');
+	const disposable3 = vscode.commands.registerCommand('volyfequickdev.refresh-entry', () => {
+		folderViewProvider.refresh();
 	});
 
-	const disposable4 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable4 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-folder', () => {
+		fs.rmSync(path.join(__dirname, '..', DEV_BUILD_FOLDER), { recursive: true, force: true });
+		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
+		vscode.window.showInformationMessage('The folder has been removed');
+	});
+	const disposable5 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-entry', (node: BuiltFile) => {
+		if (node.label === DEV_BUILD_FOLDER) {
+			vscode.commands.executeCommand('volyfequickdev.remove-dev-builds-folder');
+		} else {
+			fs.rmSync(node.fullPath, { force: true });
+		}
+		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
+		vscode.window.showInformationMessage(`${node.label} has been removed`);
+	});
+
+	const disposable6 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
 	vscode.window.showInformationMessage('[volyfequickdev] is now running...');
 
-	context.subscriptions.push(disposable1, disposable2, disposable3, disposable4);
+	context.subscriptions.push(
+		disposable,
+		disposable1,
+		disposable2,
+		disposable3,
+		disposable4,
+		disposable5,
+		disposable6,
+	);
 }
 
 // this method is called when your extension is deactivated
@@ -109,6 +135,7 @@ class FrontendQuickDevExtension {
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 
 		await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(path.join(__dirname, '..', DEV_BUILD_FOLDER)), { overwrite: true });
+		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
 		vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
 	}
 

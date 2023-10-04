@@ -1,7 +1,8 @@
 {
 	"name": "volyfequickdev",
-	"displayName": "VolyFEQuickDev",
+	"displayName": "Voly FE Quick Dev",
 	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file)",
+	"icon": "./icon/voly.png",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.82.0"
@@ -26,27 +27,49 @@
 				"title": "Voly Frontend Quick Dev: Disable"
 			},
 			{
+				"command": "volyfequickdev.is-a-fe-repo",
+				"title": "Voly Frontend Quick Dev: Check if the current workspace is a frontend repo"
+			},
+			{
 				"command": "volyfequickdev.remove-dev-builds-folder",
-				"title": "Voly Frontend Quick Dev: Remove The Dev Builds Folder"
+				"title": "Voly Frontend Quick Dev: Remove the dev-builds folder"
+			},
+			{
+				"command": "volyfequickdev.remove-dev-builds-entry",
+				"title": "Remove"
+			},
+			{
+				"command": "volyfequickdev.refresh-entry",
+				"title": "Refresh"
 			}
 		],
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "volyfequickdev-devBuildsFolder-explorer",
-					"title": "Voly Dev Builds Folder Explorer",
-					"icon": "https://ui.voly.co.uk/theme/voly/images/Logomark_Primary.svg"
+					"title": "Voly FE Quick Dev",
+					"icon": "./icon/voly.svg"
 				}
 			]
 		},
 		"views": {
-      "explorer": [
+      "volyfequickdev-devBuildsFolder-explorer": [
         {
           "id": "volyfequickdev-devBuildsFolder-explorer",
-          "name": "Voly Dev Builds Folder Explorer"
+          "name": "Folder Explorer",
+					"icon": "./icon/voly.svg",
+        	"contextualTitle": "Voly FE Dev Builds Folder Explorer"
         }
       ]
-    }
+    },
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "volyfequickdev.remove-dev-builds-entry",
+					"when": "view == volyfequickdev-devBuildsFolder-explorer && viewItem == devBuildsFolder"
+				}
+			]
+		}
 	},
 	"repository": {
     "type": "git",

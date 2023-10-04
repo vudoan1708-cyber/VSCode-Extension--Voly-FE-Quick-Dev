@@ -1,11 +1,13 @@
 {
 	"name": "volyfequickdev",
 	"displayName": "VolyFEQuickDev",
-	"description": "FE quick dev process to be used in Voly",
+	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file)",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.82.0"
 	},
+	"publisher": "Voly",
+	"pricing": "Free",
 	"categories": [
 		"Other"
 	],
@@ -22,9 +24,34 @@
 			{
 				"command": "volyfequickdev.disable",
 				"title": "Voly Frontend Quick Dev: Disable"
+			},
+			{
+				"command": "volyfequickdev.remove-dev-builds-folder",
+				"title": "Voly Frontend Quick Dev: Remove The Dev Builds Folder"
 			}
-		]
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "volyfequickdev-devBuildsFolder-explorer",
+					"title": "Voly Dev Builds Folder Explorer",
+					"icon": "https://ui.voly.co.uk/theme/voly/images/Logomark_Primary.svg"
+				}
+			]
+		},
+		"views": {
+      "explorer": [
+        {
+          "id": "volyfequickdev-devBuildsFolder-explorer",
+          "name": "Voly Dev Builds Folder Explorer"
+        }
+      ]
+    }
 	},
+	"repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/voly/local-development.git"
+  },
 	"scripts": {
 		"vscode:prepublish": "npm run package",
 		"compile": "webpack",

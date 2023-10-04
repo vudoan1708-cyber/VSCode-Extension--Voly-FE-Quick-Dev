@@ -4,8 +4,8 @@
 
 This extension is used to help speed up the frontend development process at Voly, ensure that Svelte components are built and served statically, which is then fetched by an internal tool used to load components to the Voly site
 
-```Statically served files are accessible from a working workspace```
 ![Statically served files](https://ui.voly.co.uk/extension-media/volyfequickdev-treeview.png)
+<br /><sup>Statically served files are accessible from a working workspace</sup>
 
 ## Requirements
 
@@ -19,11 +19,7 @@ No settings required
 
 1. UI-Loader will always fetch the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
 
-2. Treeview doesn't yet allow multiple file selection for deletion
-
 ## Release Notes
-
-Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 

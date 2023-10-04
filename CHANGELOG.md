@@ -17,6 +17,8 @@ All notable changes to the "volyfequickdev" extension will be documented in this
   ### Constraints:
     - UI-Loader still fetches the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
     - Treeview doesn't yet allow multiple file selection for deletion
+## [04/10/2023]
+- Treeview are now refreshable and the files can now be deleted in batch
 
 <br />
 

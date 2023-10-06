@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
 
-	const treeView = vscode.window.createTreeView('volyfequickdev-devBuildsFolder-explorer', {
+	const treeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
 		treeDataProvider: folderViewProvider,
 		canSelectMany: true,
 	});
@@ -38,31 +38,38 @@ export function activate(context: vscode.ExtensionContext) {
 		extension.toggleExtensionState(false);
 		vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
 	});
-	const disposable3 = vscode.commands.registerCommand('volyfequickdev.refresh-entry', () => {
+	const disposable3 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.refresh-entry', () => {
 		folderViewProvider.refresh();
 	});
 
-	const disposable4 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-folder', () => {
+	const disposable4 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder', () => {
 		fs.rmSync(pathToDevBuildsFolder, { recursive: true, force: true });
-		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
+		vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
 		vscode.window.showInformationMessage('The folder has been removed');
 	});
-	const disposable5 = vscode.commands.registerCommand('volyfequickdev.remove-dev-builds-entry', (node: BuiltFile) => {
+	const disposable5 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-entry', (node: BuiltFile) => {
 		// If number of selected items equals the total number of files in the dev-builds folder, then remove all
 		if (multiSelectedTreeItems.length === fs.readdirSync(pathToDevBuildsFolder).length) {
-			vscode.commands.executeCommand('volyfequickdev.remove-dev-builds-folder');
+			vscode.commands.executeCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder');
 		} else if (multiSelectedTreeItems.length > 1) {
 			multiSelectedTreeItems.forEach((file) => {
 				fs.rmSync(file.fullPath, { force: true });
 			});
+			vscode.window.showInformationMessage(`${multiSelectedTreeItems.length} items have been removed`);
 		} else {
 			fs.rmSync(node.fullPath, { force: true });
+			vscode.window.showInformationMessage(`${node.label} has been removed`);
 		}
-		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
-		vscode.window.showInformationMessage(`${node.label} has been removed`);
+		vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+	});
+	const disposable6 = vscode.commands.registerCommand('volyfequickdev.share-local.add', async () => {
+		const inputted: string | undefined = await vscode.window.showInputBox({
+			placeHolder: 'Type in a user email to share your local server with the its owner. E.g: vu@voly.co.uk'
+		});
+		console.warn('inputted', inputted);
 	});
 
-	const disposable6 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable7 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -76,6 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 		disposable4,
 		disposable5,
 		disposable6,
+		disposable7,
 	);
 }
 
@@ -91,15 +99,16 @@ export function deactivate() {
 class FrontendQuickDevExtension {
 	private _context: vscode.ExtensionContext;
 	private _terminalFactoryInstance: TerminalFactory;
+	private _expressApp: ExpressApp;
 
 	constructor(context: vscode.ExtensionContext, terminalFactory: TerminalFactory) {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
 		// Instantiate an express app
-		const expressApp = new ExpressApp();
-		expressApp.initialiseRoutes();
-		expressApp.serveStatic();
+		this._expressApp = new ExpressApp();
+		this._expressApp.initialiseRoutes();
+		this._expressApp.serveStatic();
 	}
 
 	private _isEnabled() {
@@ -147,9 +156,21 @@ class FrontendQuickDevExtension {
 
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 
-		await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
-		vscode.commands.executeCommand('volyfequickdev.refresh-entry');
-		vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
+		try {
+			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
+			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+			vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
+
+			const bufferedFiles: Buffer[] = [];
+			fs.readdirSync(pathToDevBuildsFolder, { encoding: 'base64' }).forEach((file) => {
+				bufferedFiles.push(Buffer.from(file));
+			});
+			console.log(bufferedFiles);
+			this._expressApp.hybridConnector.send(bufferedFiles);
+		} catch (err) {
+			console.error(err);
+			// TODO: Need to prompt user to perform the copying again
+		}
 	}
 
 	public toggleExtensionState(value: boolean) {

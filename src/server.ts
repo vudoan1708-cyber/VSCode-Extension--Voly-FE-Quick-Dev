@@ -1,12 +1,18 @@
+import * as vscode from 'vscode';
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
+
+// Classes
+import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Constant
-import { DEV_BUILD_FOLDER } from './constants';
+import { DEV_BUILD_FOLDER, SENDERS } from './constants';
 
 export default class ExpressApp {
   private _instance: Application;
@@ -24,7 +30,8 @@ export default class ExpressApp {
     credentials: true,
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
   };
-  
+
+  public hybridConnector: RelayHybridConnectionFactory;
 
   constructor() {
     this._instance = express();
@@ -40,6 +47,15 @@ export default class ExpressApp {
 		this._serverApp.listen(this._serverPort, () => {
 			console.log(`Server is running on port ${this._serverPort}`);
 		});
+    // TODO: Add an error handler to the port service in case of port clashes
+
+    // Azure relay hybrid connection
+    this.hybridConnector = new RelayHybridConnectionFactory();
+
+    const devEmail = execSync('git config user.email', { encoding: 'utf-8' }).trim();
+    this.hybridConnector.createInstance(
+      SENDERS.find((sender) => sender === devEmail) ? 'frontend' : 'backend'
+    );
   }
 
   public serveStatic() {

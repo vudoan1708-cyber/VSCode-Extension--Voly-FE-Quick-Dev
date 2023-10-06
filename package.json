@@ -31,26 +31,34 @@
 				"title": "Voly Frontend Quick Dev: Check if the current workspace is a frontend repo"
 			},
 			{
-				"command": "volyfequickdev.remove-dev-builds-folder",
+				"command": "volyfequickdev.folder-explorer.remove-dev-builds-folder",
 				"title": "Voly Frontend Quick Dev: Remove the dev-builds folder"
 			},
 			{
-				"command": "volyfequickdev.remove-dev-builds-entry",
+				"command": "volyfequickdev.folder-explorer.remove-entry",
 				"title": "Remove"
 			},
 			{
-				"command": "volyfequickdev.refresh-entry",
+				"command": "volyfequickdev.folder-explorer.refresh-entry",
 				"title": "Refresh",
 				"icon": {
 					"light": "icon/light/refresh.svg",
 					"dark": "icon/dark/refresh.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.share-local.add",
+				"title": "Add",
+				"icon": {
+					"light": "icon/light/add.svg",
+					"dark": "icon/dark/add.svg"
 				}
 			}
 		],
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "volyfequickdev-devBuildsFolder-explorer",
+					"id": "volyfequickdev-viewSection",
 					"title": "Voly FE Quick Dev",
 					"icon": "./icon/voly.svg"
 				}
@@ -58,40 +66,51 @@
 		},
 		"viewsWelcome": [
 			{
-				"view": "volyfequickdev-devBuildsFolder-explorer",
+				"view": "volyfequickdev-devbuilds-explorer",
 				"contents": "No built files found."
 			}
 		],
 		"views": {
-      "volyfequickdev-devBuildsFolder-explorer": [
-        {
-          "id": "volyfequickdev-devBuildsFolder-explorer",
-          "name": "Folder Explorer",
+			"volyfequickdev-viewSection": [
+				{
+					"id": "volyfequickdev-devbuilds-explorer",
+					"name": "Folder Explorer",
 					"icon": "./icon/voly.svg",
-        	"contextualTitle": "Voly FE Dev Builds Folder Explorer"
-        }
-      ]
-    },
+					"contextualTitle": "Voly FE Dev Builds Folder Explorer"
+				},
+				{
+					"id": "volyfequickdev-sharelocal",
+					"name": "Share Local",
+					"icon": "./icon/voly.svg",
+					"contextualTitle": "Share your changes on local server with others on test2"
+				}
+			]
+		},
 		"menus": {
 			"view/title": [
-        {
-					"command": "volyfequickdev.refresh-entry",
-					"when": "view == volyfequickdev-devBuildsFolder-explorer",
+				{
+					"command": "volyfequickdev.folder-explorer.refresh-entry",
+					"when": "view == volyfequickdev-devbuilds-explorer",
 					"group": "navigation"
-        }
-    	],
+				},
+				{
+					"command": "volyfequickdev.share-local.add",
+					"when": "view == volyfequickdev-sharelocal",
+					"group": "navigation"
+				}
+			],
 			"view/item/context": [
 				{
-					"command": "volyfequickdev.remove-dev-builds-entry",
-					"when": "view == volyfequickdev-devBuildsFolder-explorer && viewItem == devBuildsFolder"
+					"command": "volyfequickdev.folder-explorer.remove-entry",
+					"when": "view == volyfequickdev-devbuilds-explorer && viewItem == devBuildsFolder"
 				}
 			]
 		}
 	},
 	"repository": {
-    "type": "git",
-    "url": "git+ssh://git@bitbucket.org/voly/local-development.git"
-  },
+		"type": "git",
+		"url": "git+ssh://git@bitbucket.org/voly/local-development.git"
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
 		"compile": "webpack",
@@ -107,6 +126,7 @@
 		"@types/cors": "^2.8.14",
 		"@types/express": "^4.17.18",
 		"@types/glob": "^7.2.0",
+		"@types/hyco-ws": "^1.0.4",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "14.x",
 		"@types/vscode": "^1.82.0",
@@ -118,11 +138,13 @@
 		"mocha": "^9.2.2",
 		"ts-loader": "^9.2.8",
 		"typescript": "^4.6.4",
-		"webpack": "^5.70.0",
+		"webpack": "^5.88.2",
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
-		"express": "^4.18.2"
+		"dotenv": "^16.3.1",
+		"express": "^4.18.2",
+		"hyco-ws": "^1.0.5"
 	}
 }

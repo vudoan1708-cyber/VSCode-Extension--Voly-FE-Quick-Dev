@@ -74,6 +74,7 @@ export class BuiltFile extends vscode.TreeItem {
 	// 	dark: path.join(__filename, '..', 'icon', 'dark', 'dependency.svg')
 	// };
 
+  // This is to ensure theme icon is applied correctly
   resourceUri = vscode.Uri.file(this.fullPath);
 
 	contextValue = 'devBuildsFolder';

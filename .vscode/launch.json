@@ -10,13 +10,14 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				// "${workspaceFolder}/../../voly-ui-system-config/ui-system-config",
+				// "${workspaceFolder}/../../voly-backend/docker",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "${defaultBuildTask}",
+			"envFile": "${workspaceFolder}/.env"
 		},
 		{
 			"name": "Extension Tests",

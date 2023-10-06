@@ -15,12 +15,15 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Abusing saves on files can now be tolerable, race condition might still be a problem.
 - Folder view is available for manual deletion of exposed files
   ### Constraints:
-    - UI-Loader still fetches the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
     - Treeview doesn't yet allow multiple file selection for deletion
 ## [04/10/2023]
 - Treeview are now refreshable and the files can now be deleted in batch
+## [04/10/2023]
+- [Work in progress] Setting up [Azure Relay](https://learn.microsoft.com/en-us/azure/azure-relay/relay-what-is-it) to "expose services [to the public cloud]", which will help with socket connection between 2 different local machines from different geographical locations. This service should then be used to transfer ```dev-builds``` files from one physical machine to another
+  ### Constraints:
+    - ```"webpack": "^5.70.0"``` is not working in production as the module ```hyco-ws``` resposible for the cloud relay service cannot be bundled.
 
 <br />
 
 ## Possible features:
-    - Changes on local servers can be shareable to specified user emails - UI-Loader will then take charge of comparing user emails to load components accordingly
+- Changes on local servers can be shareable to specified user emails - UI-Loader will then take charge of comparing user emails to load components accordingly

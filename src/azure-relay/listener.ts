@@ -2,6 +2,7 @@ import WebSocket from 'hyco-ws';
 
 export default class RelayListener {
   private _wss: WebSocket.HybridConnectionWebSocketServer;
+  private _receivedSessionId: string;
 
   constructor(relayNamespace: string, hybridConnectionName: string, ruleName: string, key: string) {
     const uri = WebSocket.createRelayListenUri(relayNamespace, hybridConnectionName);
@@ -14,6 +15,15 @@ export default class RelayListener {
         console.log('connection accepted');
         ws.onmessage = (event) => {
           console.log('event', event);
+
+          try {
+            // Session initiation
+            const parsed = JSON.parse(event.data as unknown as string);
+            this._receivedSessionId = parsed.sessionId;
+            console.log('parsed', parsed);
+          } catch {
+            // Files sent
+          }
         };
         ws.on('close', () => {
           console.log('connection closed');

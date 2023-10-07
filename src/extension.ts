@@ -8,7 +8,10 @@ import path from 'path';
 // Classes
 import TerminalFactory from './terminalFactory';
 import ExpressApp from './server';
+import User from './user';
+import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 import FolderView, { BuiltFile } from './ui/folderView';
+import UICommands from './uiCommands';
 
 // Constant
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
@@ -17,19 +20,21 @@ let rootDirectory: string | undefined;
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 // this method is called when your extension is activated
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+	// Azure relay hybrid connection
+	const hybridConnector = new RelayHybridConnectionFactory();
 	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
+	// User
+	const user = new User();
+	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
 
 	const treeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
 		treeDataProvider: folderViewProvider,
 		canSelectMany: true,
 	});
-	let multiSelectedTreeItems: Readonly<BuiltFile[]>	= [];
-	const disposable = treeView.onDidChangeSelection((e) => {
-		multiSelectedTreeItems = e.selection;
-	});
 
+	// Disposables
 	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
 		extension.toggleExtensionState(true);
 		vscode.window.showInformationMessage('[volyfequickdev] has been re-activated');
@@ -38,45 +43,22 @@ export function activate(context: vscode.ExtensionContext) {
 		extension.toggleExtensionState(false);
 		vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
 	});
-	const disposable3 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.refresh-entry', () => {
-		folderViewProvider.refresh();
-	});
+	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
 
-	const disposable4 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder', () => {
-		fs.rmSync(pathToDevBuildsFolder, { recursive: true, force: true });
-		vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
-		vscode.window.showInformationMessage('The folder has been removed');
-	});
-	const disposable5 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-entry', (node: BuiltFile) => {
-		// If number of selected items equals the total number of files in the dev-builds folder, then remove all
-		if (multiSelectedTreeItems.length === fs.readdirSync(pathToDevBuildsFolder).length) {
-			vscode.commands.executeCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder');
-		} else if (multiSelectedTreeItems.length > 1) {
-			multiSelectedTreeItems.forEach((file) => {
-				fs.rmSync(file.fullPath, { force: true });
-			});
-			vscode.window.showInformationMessage(`${multiSelectedTreeItems.length} items have been removed`);
-		} else {
-			fs.rmSync(node.fullPath, { force: true });
-			vscode.window.showInformationMessage(`${node.label} has been removed`);
-		}
-		vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
-	});
-	const disposable6 = vscode.commands.registerCommand('volyfequickdev.share-local.add', async () => {
-		const inputted: string | undefined = await vscode.window.showInputBox({
-			placeHolder: 'Type in a user email to share your local server with the its owner. E.g: vu@voly.co.uk'
-		});
-		console.warn('inputted', inputted);
-	});
+	const disposable4 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
+	const [ disposable5, disposable6 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, treeView);
+	const disposable7 = UICommands.toConnectWithAnotherLocal(user.role, hybridConnector);
+	const disposable8 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 
-	const disposable7 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable9 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
+
+	await UICommands.toDecideViewToDisplayBasedOnUserRole(user.role);
 
 	vscode.window.showInformationMessage('[volyfequickdev] is now running...');
 
 	context.subscriptions.push(
-		disposable,
 		disposable1,
 		disposable2,
 		disposable3,
@@ -84,6 +66,8 @@ export function activate(context: vscode.ExtensionContext) {
 		disposable5,
 		disposable6,
 		disposable7,
+		disposable8,
+		disposable9,
 	);
 }
 
@@ -101,7 +85,10 @@ class FrontendQuickDevExtension {
 	private _terminalFactoryInstance: TerminalFactory;
 	private _expressApp: ExpressApp;
 
-	constructor(context: vscode.ExtensionContext, terminalFactory: TerminalFactory) {
+	constructor(
+		context: vscode.ExtensionContext,
+		terminalFactory: TerminalFactory,
+	) {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
@@ -160,13 +147,6 @@ class FrontendQuickDevExtension {
 			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
 			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
 			vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
-
-			const bufferedFiles: Buffer[] = [];
-			fs.readdirSync(pathToDevBuildsFolder, { encoding: 'base64' }).forEach((file) => {
-				bufferedFiles.push(Buffer.from(file));
-			});
-			console.log(bufferedFiles);
-			this._expressApp.hybridConnector.send(bufferedFiles);
 		} catch (err) {
 			console.error(err);
 			// TODO: Need to prompt user to perform the copying again

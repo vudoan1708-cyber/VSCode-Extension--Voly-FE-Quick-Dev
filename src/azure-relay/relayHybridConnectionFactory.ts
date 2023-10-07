@@ -12,14 +12,15 @@ export default class RelayHybridConnectionFactory {
 
   constructor() {}
 
-  public createInstance(which: 'frontend' | 'backend'): void {
+  public createInstance(which: 'frontend' | 'backend', sessionId: string): void {
     const products = {
-      frontend: () => {
+      frontend: (sessionId: string) => {
         this._sender = new RelaySender(
           process.env.AZURE_RELAY_NAMESPACE as string,
           process.env.AZURE_RELAY_HYBRID_CONNECTION_NAME as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_CONNECTION_STRING as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_KEY as string,
+          sessionId,
         );
         return this._sender;
       },
@@ -33,12 +34,12 @@ export default class RelayHybridConnectionFactory {
         return this._listener;
       },
     };
-    products[which]();
+    products[which](sessionId);
   }
 
-  public send(data: BufferLike, cb?: ((err?: Error | undefined) => void) | undefined): void {
+  public send(data: BufferLike, cb?: ((err?: Error | undefined) => void) | undefined): { status: string } | void {
     if (!this._sender) {
-      return;
+      return { status: 'Sender not available at the moment. Please wait and try again' };
     }
     this._sender.send(data, cb);
   }

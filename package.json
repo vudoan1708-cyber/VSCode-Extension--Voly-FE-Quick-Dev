@@ -47,11 +47,19 @@
 				}
 			},
 			{
-				"command": "volyfequickdev.share-local.add",
-				"title": "Add",
+				"command": "volyfequickdev.share-local.connect",
+				"title": "Connect",
 				"icon": {
 					"light": "icon/light/add.svg",
 					"dark": "icon/dark/add.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.share-local.share",
+				"title": "Share",
+				"icon": {
+					"light": "icon/light/add.svg",
+					"dark": "icon/dark/share.svg"
 				}
 			}
 		],
@@ -75,14 +83,12 @@
 				{
 					"id": "volyfequickdev-devbuilds-explorer",
 					"name": "Folder Explorer",
-					"icon": "./icon/voly.svg",
 					"contextualTitle": "Voly FE Dev Builds Folder Explorer"
 				},
 				{
 					"id": "volyfequickdev-sharelocal",
-					"name": "Share Local",
-					"icon": "./icon/voly.svg",
-					"contextualTitle": "Share your changes on local server with others on test2"
+					"name": "Shareable Local Connection",
+					"contextualTitle": "Shared local server that works on test2"
 				}
 			]
 		},
@@ -94,8 +100,13 @@
 					"group": "navigation"
 				},
 				{
-					"command": "volyfequickdev.share-local.add",
+					"command": "volyfequickdev.share-local.connect",
 					"when": "view == volyfequickdev-sharelocal",
+					"group": "navigation"
+				},
+				{
+					"command": "volyfequickdev.share-local.share",
+					"when": "view == volyfequickdev-sharelocal && volyfequickdev-sharelocal.senderIsFrontend",
 					"group": "navigation"
 				}
 			],
@@ -133,6 +144,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.21.0",
 		"@typescript-eslint/parser": "^5.21.0",
 		"@vscode/test-electron": "^2.1.3",
+		"dotenv-webpack": "^8.0.1",
 		"eslint": "^8.14.0",
 		"glob": "^8.0.1",
 		"mocha": "^9.2.2",
@@ -145,6 +157,7 @@
 		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
-		"hyco-ws": "^1.0.5"
+		"hyco-ws": "^1.0.5",
+		"portfinder": "^1.0.32"
 	}
 }

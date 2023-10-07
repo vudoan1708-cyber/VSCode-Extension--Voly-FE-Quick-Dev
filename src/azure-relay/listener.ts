@@ -1,8 +1,14 @@
+import * as vscode from 'vscode';
+
 import WebSocket from 'hyco-ws';
+
+import fs from 'fs';
+import path from 'path';
+
+import { SendPayload } from '../types';
 
 export default class RelayListener {
   private _wss: WebSocket.HybridConnectionWebSocketServer;
-  private _handShakeSuccessful: boolean;
 
   constructor(
     relayNamespace: string,
@@ -10,37 +16,40 @@ export default class RelayListener {
     ruleName: string,
     key: string,
     receivedSessionId: string,
+    rootDir: string,
   ) {
     const uri = WebSocket.createRelayListenUri(relayNamespace, hybridConnectionName);
     this._wss = WebSocket.createRelayedServer(
       {
         server: uri,
         token: () => WebSocket.createRelayToken(uri, ruleName, key),
+        keepAliveTimeout: 5000,
       },
       (ws) => {
         console.log('connection accepted');
         ws.onmessage = (event) => {
           console.log('event', event);
 
-          try {
-            // Session initiation
-            const parsed = JSON.parse(event.data as unknown as string);
-            console.log('parsed', parsed);
-            if (receivedSessionId === parsed.sessionId) {
-              this._handShakeSuccessful = true;
+          // Session ID matching exercise
+          const parsed: SendPayload & { sessionId: string } = JSON.parse(event.data as unknown as string);
+          if (receivedSessionId === parsed.sessionId) {
+            if (parsed.data && parsed.reason === 'fileSend') {
+              const pathToNewDevBuildsFolder = path.join(rootDir, 'dev-builds');
+              console.log('pathToNewDevBuildsFolder', pathToNewDevBuildsFolder);
+              if (!fs.existsSync(pathToNewDevBuildsFolder)) {
+                fs.mkdirSync(pathToNewDevBuildsFolder);
+              }
+
+              parsed.data.forEach((file: { fileName: string, bits: string }) => {
+                fs.writeFileSync(path.join(pathToNewDevBuildsFolder, file.fileName), file.bits, 'base64');
+              });
             }
-          } catch (err) {
-            // Files sent
-            if (this._handShakeSuccessful) {
-              // Do things here
-            }
-            console.error(err);
-            console.log('Must be from the throw statement above or it is to send file');
+            return;
           }
+          vscode.window.showErrorMessage('Please double check the sessionID');
         };
         ws.on('close', () => {
           console.log('connection closed');
-          this._handShakeSuccessful = false;
         });
       }
     );

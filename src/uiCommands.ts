@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import fs from 'fs';
-import { execSync } from 'child_process';
+import path from 'path';
 
 import FolderView, { BuiltFile } from './ui/folderView';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
@@ -66,6 +66,7 @@ export default class UICommands {
   }
 
   public static toConnectWithAnotherLocal(
+    rootDirectory: string,
     userRole: User['role'],
     hybridConnector: RelayHybridConnectionFactory): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.connect', async () => {
@@ -81,7 +82,7 @@ export default class UICommands {
       if (!inputted) {
         return;
       }
-      hybridConnector.createInstance(userRole, inputted);
+      hybridConnector.createInstance(userRole, inputted, rootDirectory);
     });
   }
 
@@ -90,13 +91,14 @@ export default class UICommands {
     hybridConnector: RelayHybridConnectionFactory
   ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
-      const bufferedFiles: Buffer[] = [];
-      fs.readdirSync(pathToDevBuildsFolder, { encoding: 'base64' }).forEach((file) => {
-        bufferedFiles.push(Buffer.from(file));
+      const bufferedFiles: { fileName: string, bits: string }[] = [];
+      fs.readdirSync(pathToDevBuildsFolder).forEach((fileName) => {
+        const base64FileContent = fs.readFileSync(path.join(pathToDevBuildsFolder, fileName), { encoding: 'base64' });
+        bufferedFiles.push({ fileName, bits: base64FileContent });
       });
       console.log(bufferedFiles);
   
-      const response = hybridConnector.send(bufferedFiles);
+      const response = hybridConnector.send({ reason: 'fileSend', data: bufferedFiles });
       if (response?.status) {
         vscode.window.showWarningMessage(response.status);
       }

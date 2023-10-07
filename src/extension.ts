@@ -16,7 +16,11 @@ import UICommands from './uiCommands';
 // Constant
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
 
-let rootDirectory: string | undefined;
+const activeFileName = vscode.window.activeTextEditor?.document.fileName;
+let rootDirectory: string | undefined = vscode.workspace.workspaceFolders
+	?.map((folder) => folder.uri.fsPath)
+	?.find((fsPath) => activeFileName?.startsWith(fsPath));
+
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 // this method is called when your extension is activated
@@ -47,7 +51,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const disposable4 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable5, disposable6 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, treeView);
-	const disposable7 = UICommands.toConnectWithAnotherLocal(user.role, hybridConnector);
+	const disposable7 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, hybridConnector);
 	const disposable8 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 
 	const disposable9 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {

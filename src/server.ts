@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import { getPort, setBasePort, setHighestPort } from 'portfinder';
 
 import http from 'http';
 import path from 'path';
@@ -17,7 +18,7 @@ import { DEV_BUILD_FOLDER, SENDERS } from './constants';
 export default class ExpressApp {
   private _instance: Application;
   private _serverApp: http.Server<any>;
-	private _serverPort: number = 8090;
+	private _serverPortOptions: number[] = [ 8090, 9000 ];
   private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost' ];
   private _corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
@@ -31,9 +32,7 @@ export default class ExpressApp {
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
   };
 
-  public hybridConnector: RelayHybridConnectionFactory;
-
-  constructor() {
+  constructor(requestedPort?: number) {
     this._instance = express();
     this._instance.use(express.json());
     this._instance.use(express.urlencoded({ extended: true }));
@@ -43,19 +42,20 @@ export default class ExpressApp {
     });
     this._instance.use(cors(this._corsOptions));
 
+    // Set portfinder in case of user opening multiple instances of VSCode
+    setBasePort(requestedPort || this._serverPortOptions[0]);
+    setHighestPort(this._serverPortOptions[1]);
+
     this._serverApp = http.createServer(this._instance);
-		this._serverApp.listen(this._serverPort, () => {
-			console.log(`Server is running on port ${this._serverPort}`);
-		});
-    // TODO: Add an error handler to the port service in case of port clashes
-
-    // Azure relay hybrid connection
-    this.hybridConnector = new RelayHybridConnectionFactory();
-
-    const devEmail = execSync('git config user.email', { encoding: 'utf-8' }).trim();
-    this.hybridConnector.createInstance(
-      SENDERS.find((sender) => sender === devEmail) ? 'frontend' : 'backend'
-    );
+    getPort((err, port) => {
+      if (err) {
+        vscode.window.showErrorMessage(err.message);
+        process.exit();
+      }
+      this._serverApp.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+      });
+    });
   }
 
   public serveStatic() {

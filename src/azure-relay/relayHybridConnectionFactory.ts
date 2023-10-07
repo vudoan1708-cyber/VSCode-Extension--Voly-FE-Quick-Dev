@@ -14,22 +14,23 @@ export default class RelayHybridConnectionFactory {
 
   public createInstance(which: 'frontend' | 'backend', sessionId: string): void {
     const products = {
-      frontend: (sessionId: string) => {
+      frontend: (_sessionId_: string) => {
         this._sender = new RelaySender(
           process.env.AZURE_RELAY_NAMESPACE as string,
           process.env.AZURE_RELAY_HYBRID_CONNECTION_NAME as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_CONNECTION_STRING as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_KEY as string,
-          sessionId,
+          _sessionId_,
         );
         return this._sender;
       },
-      backend: () => {
+      backend: (_sessionId_: string) => {
         this._listener = new RelayListener(
           process.env.AZURE_RELAY_NAMESPACE as string,
           process.env.AZURE_RELAY_HYBRID_CONNECTION_NAME as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_CONNECTION_STRING as string,
           process.env.AZURE_RELAY_SAS_PRIMARY_KEY as string,
+          _sessionId_,
         );
         return this._listener;
       },

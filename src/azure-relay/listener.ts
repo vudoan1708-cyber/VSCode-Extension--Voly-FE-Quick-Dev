@@ -2,9 +2,15 @@ import WebSocket from 'hyco-ws';
 
 export default class RelayListener {
   private _wss: WebSocket.HybridConnectionWebSocketServer;
-  private _receivedSessionId: string;
+  private _handShakeSuccessful: boolean;
 
-  constructor(relayNamespace: string, hybridConnectionName: string, ruleName: string, key: string) {
+  constructor(
+    relayNamespace: string,
+    hybridConnectionName: string,
+    ruleName: string,
+    key: string,
+    receivedSessionId: string,
+  ) {
     const uri = WebSocket.createRelayListenUri(relayNamespace, hybridConnectionName);
     this._wss = WebSocket.createRelayedServer(
       {
@@ -18,21 +24,23 @@ export default class RelayListener {
 
           try {
             // Session initiation
-            if (!this._receivedSessionId) {
-              const parsed = JSON.parse(event.data as unknown as string);
-              this._receivedSessionId = parsed.sessionId;
-              console.log('parsed', parsed);
-              return;
+            const parsed = JSON.parse(event.data as unknown as string);
+            console.log('parsed', parsed);
+            if (receivedSessionId === parsed.sessionId) {
+              this._handShakeSuccessful = true;
             }
-            throw 'Err';
           } catch (err) {
             // Files sent
+            if (this._handShakeSuccessful) {
+              // Do things here
+            }
             console.error(err);
             console.log('Must be from the throw statement above or it is to send file');
           }
         };
         ws.on('close', () => {
           console.log('connection closed');
+          this._handShakeSuccessful = false;
         });
       }
     );

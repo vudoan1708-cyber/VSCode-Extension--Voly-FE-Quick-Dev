@@ -30,8 +30,9 @@ export default class TerminalFactory {
 
   public async terminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
     try {
+      const exitStatus = await terminal.close();
       this._activeTerminals = this._activeTerminals.filter((t) => t.name !== terminal.name);
-      return await terminal.close();
+      return exitStatus;
     } catch {
       return { code: undefined, reason: 0 };
     }

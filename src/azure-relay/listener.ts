@@ -26,7 +26,7 @@ export default class RelayListener {
         keepAliveTimeout: 5000,
       },
       (ws) => {
-        console.log('connection accepted');
+        vscode.window.showInformationMessage('[volyfequickdev] Connection accepted');
         ws.onmessage = (event) => {
           console.log('event', event);
 
@@ -48,15 +48,15 @@ export default class RelayListener {
             }
             return;
           }
-          vscode.window.showErrorMessage('Please double check the sessionID');
+          vscode.window.showErrorMessage('[volyfequickdev] Please double check the sessionID');
         };
         ws.on('close', () => {
-          console.log('connection closed');
+          vscode.window.showErrorMessage('[volyfequickdev] Connection closed');
         });
       }
     );
 
-    console.log('WebSocket listener is ready');
+    vscode.window.showInformationMessage('[volyfequickdev] WebSocket listener is ready');
 
     this._wss.on('error', (err) => {
       console.error(`WebSocket error: ${err}`);

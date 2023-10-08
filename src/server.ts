@@ -7,13 +7,9 @@ import { getPort, setBasePort, setHighestPort } from 'portfinder';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
-
-// Classes
-import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Constant
-import { DEV_BUILD_FOLDER, SENDERS } from './constants';
+import { DEV_BUILD_FOLDER } from './constants';
 
 export default class ExpressApp {
   private _instance: Application;
@@ -53,7 +49,7 @@ export default class ExpressApp {
         process.exit();
       }
       this._serverApp.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
+        vscode.window.showInformationMessage(`[volyfequickdev] Server is running on port ${port}`);
       });
     });
   }

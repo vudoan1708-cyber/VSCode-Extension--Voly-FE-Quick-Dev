@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 import * as TraditionalWebSocket from 'ws';
 import WebSocket from 'hyco-ws';
 
@@ -24,16 +26,16 @@ export default class RelaySender {
       uri,
       WebSocket.createRelayToken(uri, ruleName, key),
       (wss) => {
-        console.log('Started client interval.');
+        vscode.window.showInformationMessage('[volyfequickdev] Started client interval.');
 
         wss.on('close', () => {
-          console.log('stopping client interval');
+          vscode.window.showErrorMessage('[volyfequickdev] Stopping client interval');
           this._sessionId = '';
           process.exit();
         });
       }
     );
-    console.log('WebSocker sender is ready');
+    vscode.window.showInformationMessage('[volyfequickdev] WebSocker sender is ready');
   }
 
   public send(data: SendPayload, cb?: ((err?: Error | undefined) => void) | undefined): void {

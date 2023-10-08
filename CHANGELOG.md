@@ -27,9 +27,8 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Turns out, webpack was not a problem when used with ```hyco-ws```. The module just needs to be externally required, and the environment variables need to be included as a plugin in the webpack configuration.
 ## [08/10/2023]
 - Azure relay communication has been established and successfully locally tested. Need to test this remotely
-- The extension can now watch files / folders created so the ```dev-builds``` folder can be synced up immediately for each built component without having to wait for the whole build process to complete to sync.
+- The extension can now watch on created files / folders so the ```dev-builds``` folder can be synced up immediately for each successful built component without having to wait for the whole build process to complete to sync.
+  ### Constraints:
+    Race condition with loading components asynchronously. Regardless of strict checks, current list components (Unpaid Invoices, Invoice List,...), Dashboard, and Report components cannot be replaced with the locally built ones (this is a UI-Loader problem to think about).
 
 <br />
-
-## Possible features:
-- Changes on local servers can be shareable to specified user emails - UI-Loader will then take charge of comparing user emails to load components accordingly

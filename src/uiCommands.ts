@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import fs from 'fs';
-import { execSync } from 'child_process';
+import path from 'path';
 
 import FolderView, { BuiltFile } from './ui/folderView';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
@@ -13,6 +13,21 @@ export default class UICommands {
   public static toRefreshEntry(folderViewProvider: FolderView): vscode.Disposable {
 		return vscode.commands.registerCommand('volyfequickdev.folder-explorer.refresh-entry', () => {
       folderViewProvider.refresh();
+    });
+  }
+
+  public static toWatchDevBuildsFolderChangeAndUpdate(
+    rootDirectoryFromTheOtherSide: string,
+    pathToDevBuildsFolder: string
+  ): vscode.Disposable {
+    const localBuildsFolder = vscode.Uri.file(path.join(rootDirectoryFromTheOtherSide, 'build'));
+    const fileWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(localBuildsFolder, '*.{js, css}')
+    );
+    return fileWatcher.onDidCreate(async (uri) => {
+			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
+			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+      vscode.window.showInformationMessage(`${path.basename(uri.path)} is available via the /dev-builds endpoint`);
     });
   }
 
@@ -66,22 +81,23 @@ export default class UICommands {
   }
 
   public static toConnectWithAnotherLocal(
+    rootDirectoryFromTheOtherSide: string,
     userRole: User['role'],
-    hybridConnector: RelayHybridConnectionFactory): vscode.Disposable {
+    hybridConnector: RelayHybridConnectionFactory
+  ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.connect', async () => {
       const placeHolder = {
-        frontend: 'Type in a connection password to share your local with others',
-        backend: 'Type in the connection password that is shared from a frontend developer',
+        frontend: 'Type in a password to connect with a FE developer\'s local',
+        backend: 'Type in the connection password that is shared from a BE developer',
       };
       const inputted: string | undefined = await vscode.window.showInputBox({
         placeHolder: placeHolder[userRole],
       });
-      console.warn('inputted', inputted);
 
       if (!inputted) {
         return;
       }
-      hybridConnector.createInstance(userRole, inputted);
+      hybridConnector.createInstance(userRole, inputted, rootDirectoryFromTheOtherSide);
     });
   }
 
@@ -90,13 +106,14 @@ export default class UICommands {
     hybridConnector: RelayHybridConnectionFactory
   ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
-      const bufferedFiles: Buffer[] = [];
-      fs.readdirSync(pathToDevBuildsFolder, { encoding: 'base64' }).forEach((file) => {
-        bufferedFiles.push(Buffer.from(file));
+      const bufferedFiles: { fileName: string, bits: string }[] = [];
+      fs.readdirSync(pathToDevBuildsFolder).forEach((fileName) => {
+        const base64FileContent = fs.readFileSync(path.join(pathToDevBuildsFolder, fileName), { encoding: 'base64' });
+        bufferedFiles.push({ fileName, bits: base64FileContent });
       });
       console.log(bufferedFiles);
   
-      const response = hybridConnector.send(bufferedFiles);
+      const response = hybridConnector.send({ reason: 'fileSend', data: bufferedFiles });
       if (response?.status) {
         vscode.window.showWarningMessage(response.status);
       }

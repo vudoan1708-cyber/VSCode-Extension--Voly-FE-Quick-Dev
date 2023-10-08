@@ -6,10 +6,10 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 
 - Initial setup and working prototype<br />
   ### Constraints:
-  - <b><i>dev-builds</i></b> folder is overwritten every save, hence it cannot contain more than 1 high-level component / repo
-  - Abusing saves on files can cause race conditions and only the final one that gets resolved will be on test2
-  - Programmatically uninterruptible terminal processes
-  - UI-Loader will always fetch the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
+    - <b><i>dev-builds</i></b> folder is overwritten every save, hence it cannot contain more than 1 high-level component / repo
+    - Abusing saves on files can cause race conditions and only the final one that gets resolved will be on test2
+    - Programmatically uninterruptible terminal processes
+    - UI-Loader will always fetch the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
 ## [04/10/2023]
 - <b><i>dev-builds</i></b> folder is still overwritten every save. However, the working <b><i>build</i></b> folder that is synced with it, is no longer overwritten every save (ensure the historical saves), but will be deleted everytime VSCode is shut down
 - Abusing saves on files can now be tolerable, race condition might still be a problem.
@@ -25,6 +25,9 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 ## [07/10/2023]
 - [Work in progress] Azure relay connection is successful. Data can be sent from the sender (a FE dev) to the listener (a BE dev). Just need to work out how to rewrite the buffer-like data into actual files.
 - Turns out, webpack was not a problem when used with ```hyco-ws```. The module just needs to be externally required, and the environment variables need to be included as a plugin in the webpack configuration.
+## [08/10/2023]
+- Azure relay communication has been established and successfully locally tested. Need to test this remotely
+- The extension can now watch files / folders created so the ```dev-builds``` folder can be synced up immediately for each built component without having to wait for the whole build process to complete to sync.
 
 <br />
 

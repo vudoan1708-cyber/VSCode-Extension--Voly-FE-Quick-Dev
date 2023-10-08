@@ -10,7 +10,7 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				// "${workspaceFolder}/../../voly-backend/docker",
+				"${workspaceFolder}/../../voly-ui-reports/ui-reports",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [

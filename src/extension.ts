@@ -2,6 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+import 'dotenv/config';
+
 import fs from 'fs';
 import path from 'path';
 
@@ -10,16 +12,21 @@ import TerminalFactory from './terminalFactory';
 import ExpressApp from './server';
 import User from './user';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
-import FolderView, { BuiltFile } from './ui/folderView';
+import FolderView from './ui/folderView';
 import UICommands from './uiCommands';
 
 // Constant
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
 
-let rootDirectory: string | undefined;
+// Find the root directory from the current workspace
+const activeFileName = vscode.window.activeTextEditor?.document.fileName;
+let rootDirectory: string | undefined = vscode.workspace.workspaceFolders
+	?.map((folder) => folder.uri.fsPath)
+	?.find((fsPath) => activeFileName?.startsWith(fsPath));
+
+// Find the dev-builds folder from within the extension workspace
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
-// this method is called when your extension is activated
 export async function activate(context: vscode.ExtensionContext) {
 	// Azure relay hybrid connection
 	const hybridConnector = new RelayHybridConnectionFactory();
@@ -44,13 +51,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
 	});
 	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
+	const disposable4 = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
+	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
+	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, treeView);
+	const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, hybridConnector);
+	const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 
-	const disposable4 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
-	const [ disposable5, disposable6 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, treeView);
-	const disposable7 = UICommands.toConnectWithAnotherLocal(user.role, hybridConnector);
-	const disposable8 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
-
-	const disposable9 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable10 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -68,6 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable7,
 		disposable8,
 		disposable9,
+		disposable10,
 	);
 }
 
@@ -75,6 +83,9 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 	// remove existing build folder from the working workspace before VSCode is shutdown
 	if (!rootDirectory) {
+		return;
+	}
+	if (!fs.existsSync(`${rootDirectory}/build`)) {
 		return;
 	}
 	fs.rmSync(`${rootDirectory}/build`, { recursive: true, force: true });
@@ -136,11 +147,7 @@ class FrontendQuickDevExtension {
 
 		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies of them to the extension\'s local workspace...');
 
-		// Locate the root directory
-		rootDirectory = vscode.workspace.workspaceFolders
-			?.map((folder) => folder.uri.fsPath)
-			?.find((fsPath) => document.fileName.startsWith(fsPath));
-
+		// Locate the build folder
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 
 		try {

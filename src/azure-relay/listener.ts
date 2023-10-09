@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import * as TraditionalWebSocket from 'ws';
 import WebSocket from 'hyco-ws';
 
 import fs from 'fs';
@@ -9,6 +10,8 @@ import { SendPayload } from '../types';
 
 export default class RelayListener {
   private _wss: WebSocket.HybridConnectionWebSocketServer;
+  private _listener?: TraditionalWebSocket;
+
   public connected: boolean = false;
 
   constructor(
@@ -29,6 +32,7 @@ export default class RelayListener {
       (ws) => {
         vscode.window.showInformationMessage('[volyfequickdev] Connection accepted');
         if (!this.connected) {
+          this._listener = ws;
           this.connected = true;
         }
 
@@ -67,5 +71,10 @@ export default class RelayListener {
     this._wss.on('error', (err) => {
       console.error(`WebSocket error: ${err}`);
     });
+  }
+
+  public close(code?: number, data?: Buffer) {
+    this._listener?.close(code, data);
+    this._listener = undefined;
   }
 }

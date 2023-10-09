@@ -8,7 +8,7 @@ import { SendPayload } from '../types';
 type RedefinedRelayedConnect = (address: string, token: string, fn: (wss: TraditionalWebSocket) => void) => TraditionalWebSocket;
 
 export default class RelaySender {
-  private _sender: TraditionalWebSocket;
+  private _sender?: TraditionalWebSocket;
   private _sessionId: string;
 
   public connected: boolean;
@@ -44,11 +44,16 @@ export default class RelaySender {
     vscode.window.showInformationMessage('[volyfequickdev] WebSocker sender is ready');
   }
 
+  public close(code?: number, data?: Buffer) {
+    this._sender?.close(code, data);
+    this._sender = undefined;
+  }
+
   public send(data: SendPayload, cb?: ((err?: Error | undefined) => void) | undefined): void {
     if (!this._sessionId) {
       return;
     }
     // Always include sessionId for sanity check
-    this._sender.send(JSON.stringify({ ...data, sessionId: this._sessionId }), cb);
+    this._sender?.send(JSON.stringify({ ...data, sessionId: this._sessionId }), cb);
   }
 }

@@ -61,6 +61,14 @@
 					"light": "icon/light/add.svg",
 					"dark": "icon/dark/share.svg"
 				}
+			},
+			{
+				"command": "volyfequickdev.share-local.set-session-id",
+				"title": "Add Session Id"
+			},
+			{
+				"command": "volyfequickdev.share-local.refresh-view",
+				"title": "Refresh"
 			}
 		],
 		"viewsContainers": {

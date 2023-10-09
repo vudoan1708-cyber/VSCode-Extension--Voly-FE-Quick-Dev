@@ -12,11 +12,13 @@ import TerminalFactory from './terminalFactory';
 import ExpressApp from './server';
 import User from './user';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
-import FolderView from './ui/folderView';
+
+import { FolderView, ShareLocalView } from './ui';
+
 import UICommands from './uiCommands';
 
 // Constant
-import { DEV_BUILD_FOLDER, DISABLE_KEYWORD } from './constants';
+import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUDED_LIST } from './constants';
 
 // Find the root directory from the current workspace
 const activeFileName = vscode.window.activeTextEditor?.document.fileName;
@@ -35,10 +37,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	const user = new User();
 	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
+	const connectionViewProvider = new ShareLocalView();
 
-	const treeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
+	const folderTreeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
 		treeDataProvider: folderViewProvider,
 		canSelectMany: true,
+	});
+	const connectionTreeView = vscode.window.createTreeView('volyfequickdev-sharelocal', {
+		treeDataProvider: connectionViewProvider,
 	});
 
 	// Disposables
@@ -53,17 +59,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
 	const disposable4 = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
-	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, treeView);
-	const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, hybridConnector);
+	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, folderTreeView);
+	const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, connectionViewProvider, hybridConnector);
 	const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
+	const disposable10 = UICommands.toRefreshSharedConnection(connectionViewProvider);
 
-	const disposable10 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable11 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
 	await UICommands.toDecideViewToDisplayBasedOnUserRole(user.role);
 
-	vscode.window.showInformationMessage('[volyfequickdev] is now running...');
+	vscode.window.showInformationMessage('[volyfequickdev] The extension is now running...');
 
 	context.subscriptions.push(
 		disposable1,
@@ -76,6 +83,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable8,
 		disposable9,
 		disposable10,
+		disposable11,
 	);
 }
 
@@ -129,6 +137,12 @@ class FrontendQuickDevExtension {
 		// Check if single file disable
 		if (document.getText().includes(DISABLE_KEYWORD)) {
 			console.warn(`[volyfequickdev] has been disabled on ${savedFileName}`);
+			return;
+		}
+
+		// Check for the exclude list
+		if (EXCLUDED_LIST.includes(path.basename(rootDirectory || ''))) {
+			console.warn(`[volyfequickdev] ${path.basename(rootDirectory || '')} is not a target for the extension to run on`);
 			return;
 		}
 

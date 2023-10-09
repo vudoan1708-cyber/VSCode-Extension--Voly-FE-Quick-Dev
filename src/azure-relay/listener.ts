@@ -9,6 +9,7 @@ import { SendPayload } from '../types';
 
 export default class RelayListener {
   private _wss: WebSocket.HybridConnectionWebSocketServer;
+  public connected: boolean = false;
 
   constructor(
     relayNamespace: string,
@@ -27,6 +28,10 @@ export default class RelayListener {
       },
       (ws) => {
         vscode.window.showInformationMessage('[volyfequickdev] Connection accepted');
+        if (!this.connected) {
+          this.connected = true;
+        }
+
         ws.onmessage = (event) => {
           console.log('event', event);
 
@@ -51,12 +56,13 @@ export default class RelayListener {
           vscode.window.showErrorMessage('[volyfequickdev] Please double check the sessionID');
         };
         ws.on('close', () => {
+          this.connected = false;
           vscode.window.showErrorMessage('[volyfequickdev] Connection closed');
         });
       }
     );
 
-    vscode.window.showInformationMessage('[volyfequickdev] WebSocket listener is ready');
+    vscode.window.showInformationMessage('[volyfequickdev] WebSocket listener is ready. Waiting for connection...');
 
     this._wss.on('error', (err) => {
       console.error(`WebSocket error: ${err}`);

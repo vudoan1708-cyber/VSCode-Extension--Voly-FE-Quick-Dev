@@ -41,6 +41,10 @@ export default class RelayHybridConnectionFactory {
     products[which](sessionId, rootDirectoryFromTheBackendSide);
   }
 
+  public hasEstablishedConnection() {
+    return this._listener?.connected || this._sender?.connected;
+  }
+
   public send(data: SendPayload, cb?: ((err?: Error | undefined) => void) | undefined): { status: string } | void {
     if (!this._sender) {
       return { status: 'Sender not available at the moment. Please wait and try again' };

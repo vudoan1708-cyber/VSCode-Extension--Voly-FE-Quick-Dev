@@ -11,6 +11,8 @@ export default class RelaySender {
   private _sender: TraditionalWebSocket;
   private _sessionId: string;
 
+  public connected: boolean;
+
   constructor(
     relayNamespace: string,
     hybridConnectionName: string,
@@ -27,10 +29,14 @@ export default class RelaySender {
       WebSocket.createRelayToken(uri, ruleName, key),
       (wss) => {
         vscode.window.showInformationMessage('[volyfequickdev] Started client interval.');
+        if (!this.connected) {
+          this.connected = true;
+        }
 
         wss.on('close', () => {
-          vscode.window.showErrorMessage('[volyfequickdev] Stopping client interval');
           this._sessionId = '';
+          this.connected = false;
+          vscode.window.showErrorMessage('[volyfequickdev] Stopping client interval');
           process.exit();
         });
       }

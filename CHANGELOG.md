@@ -29,6 +29,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Azure relay communication has been established and successfully locally tested. Need to test this remotely
 - The extension can now watch on created files / folders so the ```dev-builds``` folder can be synced up immediately for each successful built component without having to wait for the whole build process to complete to sync.
   ### Constraints:
-    Race condition with loading components asynchronously. Regardless of strict checks, current list components (Unpaid Invoices, Invoice List,...), Dashboard, and Report components cannot be replaced with the locally built ones (this is a UI-Loader problem to think about).
+    - Race condition with loading components asynchronously. Regardless of strict checks, quite frequently, current list components (Unpaid Invoices, Invoice List,...), Dashboard, and Report components cannot be replaced with the locally built ones (this is a UI-Loader problem to think about).
 
 <br />

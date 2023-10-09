@@ -18,7 +18,7 @@ export default class FolderView implements vscode.TreeDataProvider<BuiltFile> {
   private _pathExists(p: string): boolean {
 		try {
 			fs.accessSync(p);
-		} catch (err) {
+		} catch {
 			return false;
 		}
 

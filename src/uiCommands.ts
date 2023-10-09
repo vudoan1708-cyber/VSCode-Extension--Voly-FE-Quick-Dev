@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 import FolderView, { BuiltFile } from './ui/folderView';
+import ShareLocalView from './ui/shareLocalView';
+
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Classes
@@ -26,16 +28,16 @@ export default class UICommands {
     );
     return fileWatcher.onDidCreate(async (uri) => {
 			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
-			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
-      vscode.window.showInformationMessage(`${path.basename(uri.path)} is available via the /dev-builds endpoint`);
+			await vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+      vscode.window.showInformationMessage(`[volyfequickdev] ${path.basename(uri.path)} is available via the /dev-builds endpoint`);
     });
   }
 
   public static toRemoveDevBuildsFolder(pathToDevBuildsFolder: string): vscode.Disposable {
-    return vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder', () => {
+    return vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder', async () => {
       fs.rmSync(pathToDevBuildsFolder, { recursive: true, force: true });
-      vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
-      vscode.window.showInformationMessage('The folder has been removed');
+      await vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+      vscode.window.showInformationMessage('[volyfequickdev] The folder has been removed');
     });
   }
 
@@ -47,18 +49,18 @@ export default class UICommands {
     const disposable = treeView.onDidChangeSelection((e) => {
       multiSelectedTreeItems = e.selection;
     });
-    const disposable1 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-entry', (node: BuiltFile) => {
+    const disposable1 = vscode.commands.registerCommand('volyfequickdev.folder-explorer.remove-entry', async (node: BuiltFile) => {
       // If number of selected items equals the total number of files in the dev-builds folder, then remove all
       if (multiSelectedTreeItems.length === fs.readdirSync(pathToDevBuildsFolder).length) {
-        vscode.commands.executeCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder');
+        await vscode.commands.executeCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder');
       } else if (multiSelectedTreeItems.length > 1) {
         multiSelectedTreeItems.forEach((file) => {
           fs.rmSync(file.fullPath, { force: true });
         });
-        vscode.window.showInformationMessage(`${multiSelectedTreeItems.length} items have been removed`);
+        vscode.window.showInformationMessage(`[volyfequickdev] ${multiSelectedTreeItems.length} items have been removed`);
       } else {
         fs.rmSync(node.fullPath, { force: true });
-        vscode.window.showInformationMessage(`${node.label} has been removed`);
+        vscode.window.showInformationMessage(`[volyfequickdev] ${node.label} has been removed`);
       }
       vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
     });
@@ -83,12 +85,13 @@ export default class UICommands {
   public static toConnectWithAnotherLocal(
     rootDirectoryFromTheOtherSide: string,
     userRole: User['role'],
+    connectionViewProvider: ShareLocalView,
     hybridConnector: RelayHybridConnectionFactory
   ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.connect', async () => {
       const placeHolder = {
-        frontend: 'Type in a password to connect with a FE developer\'s local',
-        backend: 'Type in the connection password that is shared from a BE developer',
+        frontend: 'Type in the connection ID that is shared from a BE developer',
+        backend: 'Type in an ID to connect with a FE developer\'s local',
       };
       const inputted: string | undefined = await vscode.window.showInputBox({
         placeHolder: placeHolder[userRole],
@@ -97,7 +100,19 @@ export default class UICommands {
       if (!inputted) {
         return;
       }
+      if (inputted.length < 6) {
+        vscode.window.showWarningMessage('Connection ID needs to be more than 5 characters');
+        return;
+      }
+      
+      // If there is already an established connection and we desire to have a different connection
+      if (hybridConnector.hasEstablishedConnection()) {
+        console.warn('Has Connection');
+        connectionViewProvider.removeSessionId();
+      }
+      connectionViewProvider.assignSessionId(inputted);
       hybridConnector.createInstance(userRole, inputted, rootDirectoryFromTheOtherSide);
+      vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
     });
   }
 
@@ -117,6 +132,12 @@ export default class UICommands {
       if (response?.status) {
         vscode.window.showWarningMessage(response.status);
       }
+    });
+  }
+
+  public static toRefreshSharedConnection(shareLocalViewProvider: ShareLocalView): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.share-local.refresh-view', () => {
+      shareLocalViewProvider.refresh();
     });
   }
 }

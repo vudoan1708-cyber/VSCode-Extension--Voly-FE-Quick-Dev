@@ -45,6 +45,17 @@ export default class RelayHybridConnectionFactory {
     return this._listener?.connected || this._sender?.connected;
   }
 
+  public resetConnection() {
+    if (this._listener) {
+      this._listener.connected = false;
+      this._listener.close();
+    }
+    if (this._sender) {
+      this._sender.connected = false;
+      this._sender.close();
+    }
+  }
+
   public send(data: SendPayload, cb?: ((err?: Error | undefined) => void) | undefined): { status: string } | void {
     if (!this._sender) {
       return { status: 'Sender not available at the moment. Please wait and try again' };

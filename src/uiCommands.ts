@@ -107,8 +107,9 @@ export default class UICommands {
       
       // If there is already an established connection and we desire to have a different connection
       if (hybridConnector.hasEstablishedConnection()) {
-        console.warn('Has Connection');
         connectionViewProvider.removeSessionId();
+        hybridConnector.resetConnection();
+        vscode.window.showInformationMessage('Previous connection has been removed');
       }
       connectionViewProvider.assignSessionId(inputted);
       hybridConnector.createInstance(userRole, inputted, rootDirectoryFromTheOtherSide);

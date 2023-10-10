@@ -13,7 +13,7 @@ import ExpressApp from './server';
 import User from './user';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
-import { FolderView, ShareLocalView } from './ui';
+import { FolderView, ShareLocalView, SettingView } from './ui';
 
 import UICommands from './uiCommands';
 
@@ -32,12 +32,15 @@ const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 export async function activate(context: vscode.ExtensionContext) {
 	// Azure relay hybrid connection
 	const hybridConnector = new RelayHybridConnectionFactory();
-	const extension = new FrontendQuickDevExtension(context, new TerminalFactory());
+	// Server
+	const server = new ExpressApp(); 
+	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
 	// User
 	const user = new User();
 	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
 	const connectionViewProvider = new ShareLocalView();
+	const settingViewProvider = new SettingView(context, server);
 
 	const folderTreeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
 		treeDataProvider: folderViewProvider,
@@ -46,25 +49,28 @@ export async function activate(context: vscode.ExtensionContext) {
 	const connectionTreeView = vscode.window.createTreeView('volyfequickdev-sharelocal', {
 		treeDataProvider: connectionViewProvider,
 	});
+	const settingTreeView = vscode.window.createTreeView('volyfequickdev-settings', {
+		treeDataProvider: settingViewProvider,
+		manageCheckboxStateManually: true,
+	});
 
 	// Disposables
-	const disposable1 = vscode.commands.registerCommand('volyfequickdev.enable', () => {
-		extension.toggleExtensionState(true);
-		vscode.window.showInformationMessage('[volyfequickdev] has been re-activated');
-	});
-	const disposable2 = vscode.commands.registerCommand('volyfequickdev.disable', () => {
-		extension.toggleExtensionState(false);
-		vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
-	});
+	const disposable1 = UICommands.toActivateExtension(context);
+	const disposable2 = UICommands.toDeactivateExtension(context);
 	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
 	const disposable4 = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, folderTreeView);
+	// Shareable Local
 	const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, connectionViewProvider, hybridConnector);
 	const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 	const disposable10 = UICommands.toRefreshSharedConnection(connectionViewProvider);
+	// Settings
+	const disposable11 = UICommands.toCloseExpressServer(server);
+	const disposable12 = UICommands.toRestartExpressServer(server);
+	const disposable13 = UICommands.toRefreshSettingView(settingViewProvider);
 
-	const disposable11 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable14 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -84,6 +90,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable9,
 		disposable10,
 		disposable11,
+		disposable12 as vscode.Disposable,
+		disposable13,
+		disposable14,
 	);
 }
 
@@ -106,35 +115,36 @@ class FrontendQuickDevExtension {
 
 	constructor(
 		context: vscode.ExtensionContext,
+		server: ExpressApp,
 		terminalFactory: TerminalFactory,
 	) {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
 		// Instantiate an express app
-		this._expressApp = new ExpressApp();
+		this._expressApp = server;
 		this._expressApp.initialiseRoutes();
 		this._expressApp.serveStatic();
 	}
 
 	private _isEnabled() {
-		return !!this._context.globalState.get('volyfequickdev_enabled', true);
+		return !!this._context.globalState.get('volyfequickdev_activated', true);
 	}
 
 	public async run(document: vscode.TextDocument) {
-		if (document.languageId !== 'svelte' || document.fileName.includes('stories')) {
-			console.warn('Not a valid svelte component file');
-			return;
-		}
-
 		if (!this._isEnabled()) {
 			console.warn('Extension is not enabled');
 			return;
 		}
 
+		if (document.languageId !== 'svelte' || document.fileName.includes('stories')) {
+			console.warn('Not a valid svelte component file');
+			return;
+		}
+
 		const savedFileName = path.basename(document.fileName);
 
-		// Check if single file disable
+		// Check if there is a disable keyword in the active file
 		if (document.getText().includes(DISABLE_KEYWORD)) {
 			console.warn(`[volyfequickdev] has been disabled on ${savedFileName}`);
 			return;
@@ -171,10 +181,7 @@ class FrontendQuickDevExtension {
 		} catch (err) {
 			console.error(err);
 			// TODO: Need to prompt user to perform the copying again
+			vscode.window.showErrorMessage('Files could not be synced up to the extension workspace. Please retry');
 		}
-	}
-
-	public toggleExtensionState(value: boolean) {
-		this._context.globalState.update('volyfequickdev_enabled', value);
 	}
 }

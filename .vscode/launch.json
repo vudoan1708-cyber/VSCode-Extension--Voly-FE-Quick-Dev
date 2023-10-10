@@ -10,7 +10,7 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				// "${workspaceFolder}/../../voly-ui-contacts/ui-contacts",
+				// "${workspaceFolder}/../../voly-ui-system-config/ui-system-config",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [

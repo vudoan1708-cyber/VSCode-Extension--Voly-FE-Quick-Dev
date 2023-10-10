@@ -10,6 +10,8 @@ import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFac
 
 // Classes
 import User from './user';
+import ExpressApp from './server';
+import SettingView from './ui/settings';
 
 export default class UICommands {
   public static toRefreshEntry(folderViewProvider: FolderView): vscode.Disposable {
@@ -68,18 +70,9 @@ export default class UICommands {
     return [ disposable, disposable1 ];
   }
 
+  /* Shareable Local */
   public static async toDecideViewToDisplayBasedOnUserRole(userRole: User['role']) {
-    switch (userRole) {
-      case 'frontend':
-        await vscode.commands.executeCommand('setContext', 'volyfequickdev-sharelocal.senderIsFrontend', true);
-        break;
-      case 'backend':
-        await vscode.commands.executeCommand('setContext', 'volyfequickdev-sharelocal.senderIsFrontend', false);
-        break;
-      default:
-        console.error("User doesn't have one of the specified roles");
-        break;
-    }
+    await vscode.commands.executeCommand('setContext', 'volyfequickdev-sharelocal.senderIsFrontend', userRole === 'frontend');
   }
 
   public static toConnectWithAnotherLocal(
@@ -101,7 +94,7 @@ export default class UICommands {
         return;
       }
       if (inputted.length < 6) {
-        vscode.window.showWarningMessage('Connection ID needs to be more than 5 characters');
+        vscode.window.showWarningMessage('[volyfequickdev] Connection ID needs to be more than 5 characters');
         return;
       }
       
@@ -109,7 +102,7 @@ export default class UICommands {
       if (hybridConnector.hasEstablishedConnection()) {
         connectionViewProvider.removeSessionId();
         hybridConnector.resetConnection();
-        vscode.window.showInformationMessage('Previous connection has been removed');
+        vscode.window.showInformationMessage('[volyfequickdev] Previous connection has been removed');
       }
       connectionViewProvider.assignSessionId(inputted);
       hybridConnector.createInstance(userRole, inputted, rootDirectoryFromTheOtherSide);
@@ -127,11 +120,10 @@ export default class UICommands {
         const base64FileContent = fs.readFileSync(path.join(pathToDevBuildsFolder, fileName), { encoding: 'base64' });
         bufferedFiles.push({ fileName, bits: base64FileContent });
       });
-      console.log(bufferedFiles);
   
       const response = hybridConnector.send({ reason: 'fileSend', data: bufferedFiles });
       if (response?.status) {
-        vscode.window.showWarningMessage(response.status);
+        vscode.window.showWarningMessage(`[volyfequickdev] ${response.status}`);
       }
     });
   }
@@ -139,6 +131,56 @@ export default class UICommands {
   public static toRefreshSharedConnection(shareLocalViewProvider: ShareLocalView): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.refresh-view', () => {
       shareLocalViewProvider.refresh();
+    });
+  }
+
+  /* Settings */
+  public static toCloseExpressServer(server: ExpressApp): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.close-server', () => {
+      if (!server) {
+        return;
+      }
+      server.closeServer();
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+    });
+  }
+  public static toRestartExpressServer(server: ExpressApp): Promise<vscode.Disposable> | unknown {
+    if (!server) {
+      return;
+    }
+
+    return vscode.commands.registerCommand('volyfequickdev.settings.restart-server', async () => {
+      const port: string | undefined = await vscode.window.showInputBox({
+        placeHolder: 'Type in a port number. Be advised to use the correct port that the UI-Loader can fetch from',
+        value: server.selectedPort?.toString(),
+      });
+
+      if (!port) {
+        return;
+      }
+      server.startServer(Number(port));
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+    });
+  }
+
+  public static toActivateExtension(context: vscode.ExtensionContext): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.activate-extension', () => {
+      context.globalState.update('volyfequickdev_activated', true);
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+      vscode.window.showInformationMessage('[volyfequickdev] has been re-activated');
+    });
+  }
+  public static toDeactivateExtension(context: vscode.ExtensionContext): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.deactivate-extension', () => {
+      context.globalState.update('volyfequickdev_activated', false);
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+      vscode.window.showWarningMessage('[volyfequickdev] has been deactivated');
+    });
+  }
+
+  public static toRefreshSettingView(settingViewProvider: SettingView): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.refresh-view', () => {
+      settingViewProvider.refresh();
     });
   }
 }

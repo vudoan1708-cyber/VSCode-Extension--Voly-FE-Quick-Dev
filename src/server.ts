@@ -15,7 +15,7 @@ export default class ExpressApp {
   private _instance: Application;
   private _serverApp: http.Server<any>;
 	private _serverPortOptions: number[] = [ 8090, 9000 ];
-  private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost' ];
+  private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost', 'voly.docker' ];
   private _corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
       if (this._whitelist.indexOf(origin || '') > -1 || !origin) {
@@ -27,6 +27,8 @@ export default class ExpressApp {
     credentials: true,
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
   };
+
+  public selectedPort: number;
 
   constructor(requestedPort?: number) {
     this._instance = express();
@@ -45,12 +47,36 @@ export default class ExpressApp {
     this._serverApp = http.createServer(this._instance);
     getPort((err, port) => {
       if (err) {
-        vscode.window.showErrorMessage(err.message);
+        vscode.window.showErrorMessage(`[volyfequickdev] ${err.message}`);
         process.exit();
       }
-      this._serverApp.listen(port, () => {
-        vscode.window.showInformationMessage(`[volyfequickdev] Server is running on port ${port}`);
-      });
+      this.startServer(port);
+    });
+  }
+
+  public checkListeningState() {
+    return this._serverApp.listening;
+  }
+
+  public startServer(port: number) {
+    this.selectedPort = port || this.selectedPort;
+    this._serverApp.listen(this.selectedPort, async () => {
+      await vscode.commands.executeCommand('setContext', 'volyfequickdev-settings.serverIsOn', true);
+      vscode.window.showInformationMessage(`[volyfequickdev] Server is running on port ${port}`);
+    });
+  }
+
+  public closeServer() {
+    if (!this.checkListeningState()) {
+      console.warn('Server is no longer listening');
+      return;
+    }
+    this._serverApp.close(async (err) => {
+      if (err) {
+        vscode.window.showErrorMessage(`[volyfequickdev] ${err.message}`);
+        process.exit();
+      }
+      await vscode.commands.executeCommand('setContext', 'volyfequickdev-settings.serverIsOn', false);
     });
   }
 

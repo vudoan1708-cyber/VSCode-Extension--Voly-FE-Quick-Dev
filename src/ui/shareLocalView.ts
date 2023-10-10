@@ -53,8 +53,4 @@ export class ConnectedIndividual extends vscode.TreeItem {
   }
 
 	contextValue = 'shareableLocal';
-
-  public removeSelf() {
-    
-  }
 }

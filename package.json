@@ -19,18 +19,6 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "volyfequickdev.enable",
-				"title": "Voly Frontend Quick Dev: Enable"
-			},
-			{
-				"command": "volyfequickdev.disable",
-				"title": "Voly Frontend Quick Dev: Disable"
-			},
-			{
-				"command": "volyfequickdev.is-a-fe-repo",
-				"title": "Voly Frontend Quick Dev: Check if the current workspace is a frontend repo"
-			},
-			{
 				"command": "volyfequickdev.folder-explorer.remove-dev-builds-folder",
 				"title": "Voly Frontend Quick Dev: Remove the dev-builds folder"
 			},
@@ -69,6 +57,42 @@
 			{
 				"command": "volyfequickdev.share-local.refresh-view",
 				"title": "Refresh"
+			},
+			{
+				"command": "volyfequickdev.settings.close-server",
+				"title": "Close server",
+				"icon": {
+					"light": "icon/light/toggle-on.svg",
+					"dark": "icon/dark/toggle-on.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.settings.restart-server",
+				"title": "Restart server",
+				"icon": {
+					"light": "icon/light/toggle-off.svg",
+					"dark": "icon/dark/toggle-off.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.settings.activate-extension",
+				"title": "Activate extension",
+				"icon": {
+					"light": "icon/light/toggle-off.svg",
+					"dark": "icon/dark/toggle-off.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.settings.deactivate-extension",
+				"title": "Deactivate extension",
+				"icon": {
+					"light": "icon/light/toggle-on.svg",
+					"dark": "icon/dark/toggle-on.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.settings.refresh-view",
+				"title": "Refresh"
 			}
 		],
 		"viewsContainers": {
@@ -91,7 +115,12 @@
 				{
 					"id": "volyfequickdev-devbuilds-explorer",
 					"name": "Folder Explorer",
-					"contextualTitle": "Voly FE Dev Builds Folder Explorer"
+					"contextualTitle": "Voly FE dev-builds folder explorer"
+				},
+				{
+					"id": "volyfequickdev-settings",
+					"name": "Server Settings",
+					"contextualTitle": "Extension settings"
 				},
 				{
 					"id": "volyfequickdev-sharelocal",
@@ -122,6 +151,26 @@
 				{
 					"command": "volyfequickdev.folder-explorer.remove-entry",
 					"when": "view == volyfequickdev-devbuilds-explorer && viewItem == devBuildsFolder"
+				},
+				{
+					"command": "volyfequickdev.settings.close-server",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == serverStat && volyfequickdev-settings.serverIsOn"
+				},
+				{
+					"command": "volyfequickdev.settings.restart-server",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == serverStat && !volyfequickdev-settings.serverIsOn"
+				},
+				{
+					"command": "volyfequickdev.settings.deactivate-extension",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == extensionStat.activation-status.true"
+				},
+				{
+					"command": "volyfequickdev.settings.activate-extension",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == extensionStat.activation-status.false"
 				}
 			]
 		}

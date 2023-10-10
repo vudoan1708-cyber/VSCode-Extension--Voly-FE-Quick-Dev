@@ -30,5 +30,8 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - The extension can now watch on created files / folders so the ```dev-builds``` folder can be synced up immediately for each successful built component without having to wait for the whole build process to complete to sync.
   ### Constraints:
     - Race condition with loading components asynchronously. Regardless of strict checks, quite frequently, current list components (Unpaid Invoices, Invoice List,...), Dashboard, and Report components cannot be replaced with the locally built ones (this is a UI-Loader problem to think about).
+## [10/10/2023]
+- The UI-Loader has been updated to ensure the asynchronous function is called before the synchronous one and hence, this cures the race condition issue.
+- Extension and Server settings are now available in the view section.
 
 <br />

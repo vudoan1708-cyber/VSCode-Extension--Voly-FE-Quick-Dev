@@ -31,7 +31,7 @@ export default class Terminal {
 
   public async close(): Promise<vscode.TerminalExitStatus> {
     // Reference: https://stackoverflow.com/questions/55943439/how-to-wait-until-vscode-windows-terminal-operation-is-over
-    this.sendText('exit');
+    // this.sendText('exit');
     return new Promise((resolve, reject) => {
       const disposeToken = vscode.window.onDidCloseTerminal((closedTerminal) => {
         if (closedTerminal === this._instance) {

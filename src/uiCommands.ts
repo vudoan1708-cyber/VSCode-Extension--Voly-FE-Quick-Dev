@@ -23,16 +23,24 @@ export default class UICommands {
   public static toWatchDevBuildsFolderChangeAndUpdate(
     rootDirectoryFromTheOtherSide: string,
     pathToDevBuildsFolder: string
-  ): vscode.Disposable {
+  ): vscode.Disposable[] {
     const localBuildsFolder = vscode.Uri.file(path.join(rootDirectoryFromTheOtherSide, 'build'));
     const fileWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(localBuildsFolder, '*.{js, css}')
     );
-    return fileWatcher.onDidCreate(async (uri) => {
-			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
+    const copyFiles = async (uri: vscode.Uri) => {
+      await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
 			await vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
       vscode.window.showInformationMessage(`[volyfequickdev] ${path.basename(uri.path)} is available via the /dev-builds endpoint`);
+    };
+
+    const disposable = fileWatcher.onDidCreate(async (uri) => {
+      copyFiles(uri);
     });
+    const disposable1 = fileWatcher.onDidChange(async (uri) => {
+      copyFiles(uri);
+    });
+    return [ disposable, disposable1 ];
   }
 
   public static toRemoveDevBuildsFolder(pathToDevBuildsFolder: string): vscode.Disposable {
@@ -144,7 +152,7 @@ export default class UICommands {
       vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
     });
   }
-  public static toRestartExpressServer(server: ExpressApp): Promise<vscode.Disposable> | unknown {
+  public static toRestartExpressServer(server: ExpressApp): vscode.Disposable | void {
     if (!server) {
       return;
     }

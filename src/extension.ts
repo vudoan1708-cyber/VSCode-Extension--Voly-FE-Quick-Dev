@@ -17,8 +17,9 @@ import { FolderView, ShareLocalView, SettingView } from './ui';
 
 import UICommands from './uiCommands';
 
-// Constant
+// Helpers
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUDED_LIST } from './constants';
+import { findInstantiables } from './helpers';
 
 // Find the root directory from the current workspace
 const activeFileName = vscode.window.activeTextEditor?.document.fileName;
@@ -58,7 +59,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable1 = UICommands.toActivateExtension(context);
 	const disposable2 = UICommands.toDeactivateExtension(context);
 	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
-	const disposable4 = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
@@ -82,7 +84,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable1,
 		disposable2,
 		disposable3,
-		disposable4,
+		disposable4_1,
+		disposable4_2,
 		disposable5,
 		disposable6,
 		disposable7,
@@ -156,12 +159,18 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
+		// Check for existing terminal name
+		const instantiables = findInstantiables(document.fileName);
+		const instantiablePath = instantiables.map((i) => i.fullPath).join(',');
+		// Instantiate a custom terminal
+		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`, instantiablePath);
+		if (!terminal) {
+			return;
+		}
 		vscode.window.showInformationMessage('Instantiating and building relevant component(s)...');
 
-		// Instantiate a custom terminal
-		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`);
-		terminal.sendText(`npm run instantiation-scripts-gen --component=${document.fileName}`);
-		terminal.sendText('npm run build-dev');
+		terminal.sendText(`npm run instantiation-scripts-gen --component=${instantiablePath} --keepOldScripts`);
+		terminal.sendText(`npm run build-dev --configDevBuilds=${instantiables.map((i) => i.fileName).join(',')}`);
 		const status = await this._terminalFactoryInstance.terminate(terminal);
 
 		// If user forcibly close the terminal or if the reason for closing a terminal is not naturally by the shell process

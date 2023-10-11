@@ -33,5 +33,11 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 ## [10/10/2023]
 - The UI-Loader has been updated to ensure the asynchronous function is called before the synchronous one and hence, this cures the race condition issue.
 - Extension and Server settings are now available in the view section.
-
+## [11/10/2023] - Update to Version 2
+- Make use of ```rollup``` watch build technology for hot reloading. The initial build for 1 component still takes a bit of time (roughly 30 - 40 seconds), however, from then on, it usually takes 1 -  2 seconds to reload per component as the ```livereload``` snippet is injected into the bundle which will enable ```livereload``` on a web app. This should give the best developer experience as possible comparing with the version 1
+- Save on file will also now trace the sources of import - in addition to the original method (find at least 1 instantiable). The original method has also been updated so that it only returns non-duplicates. This will in hope, ease the watch build technology.
+- In accordance to the V2 changes, new terminals will only open on the ground of new saved component is found
+  ### Constraints:
+    - With this new change comes an issue with watch building from a really large repo (UI-Reports or Dashboard,...), and [most of the time, it's probably because of a memory leak](https://stackoverflow.com/questions/53230823/fatal-error-ineffective-mark-compacts-near-heap-limit-allocation-failed-javas) that prevents the watch build from going. Still trying to consider solutions - possibly changing to ```webpack```?
+    - Despite the new source trace logic, ```livereload``` uses up a lot of computational resource even with just 3 open terminals. Might be resolved by developers themselves by manually close unused ones.
 <br />

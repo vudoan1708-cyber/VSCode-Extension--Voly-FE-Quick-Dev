@@ -19,7 +19,10 @@ import UICommands from './uiCommands';
 
 // Helpers
 import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUDED_LIST } from './constants';
-import { findInstantiables } from './helpers';
+import { findInstantiables, traceSourcesOfImport } from './helpers';
+
+// Types
+import { Instantiable } from './types';
 
 // Find the root directory from the current workspace
 const activeFileName = vscode.window.activeTextEditor?.document.fileName;
@@ -159,18 +162,27 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		// Check for existing terminal name
-		const instantiables = findInstantiables(document.fileName);
-		const instantiablePath = instantiables.map((i) => i.fullPath).join(',');
+		const sources = traceSourcesOfImport(document.fileName, { stopTillNotFound: 'src' });
+		const instantiables = findInstantiables(document.fileName, { stopTillNotFound: 'src' }).filter((i) => i.fullPath && i.fileName);
+
+		let selectedApproach: Instantiable[];
+
+		if (sources.length === 0 || (instantiables.length > 0 && instantiables.length < sources.length)) {
+			selectedApproach = [ ...instantiables ];
+		} else {
+			selectedApproach = [ ...sources ];
+		}
+		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
+		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal
-		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`, instantiablePath);
+		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`, instantiableDataComponent);
 		if (!terminal) {
 			return;
 		}
 		vscode.window.showInformationMessage('Instantiating and building relevant component(s)...');
 
-		terminal.sendText(`npm run instantiation-scripts-gen --component=${instantiablePath} --keepOldScripts`);
-		terminal.sendText(`npm run build-dev --configDevBuilds=${instantiables.map((i) => i.fileName).join(',')}`);
+		terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);
+		terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}"`);
 		const status = await this._terminalFactoryInstance.terminate(terminal);
 
 		// If user forcibly close the terminal or if the reason for closing a terminal is not naturally by the shell process

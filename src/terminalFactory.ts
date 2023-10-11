@@ -9,25 +9,29 @@ export default class TerminalFactory {
 
   public createTerminal(
     name: string,
-    uniquePath: string,
+    uniqueFileName: string,
     shellPath?: string,
     shellArgs?: string,
     location?: vscode.TerminalLocation
   ): Terminal | void {
+    if (!uniqueFileName) {
+      console.log('File name not defined. Possibly due to saving the same file name');
+      return;
+    }
     // Check for duplicate terminal name or id
     const found = this._activeTerminals.find((terminal: { instance: Terminal, id: string }) => (
-      terminal.instance.name.includes(name) || terminal.id === uniquePath
+      terminal.instance.name.includes(name) || terminal.id.includes(uniqueFileName)
     ));
 
     if (found) {
-      console.log('Terminal of the same name has been activated');
+      console.log('Terminal containing certain file IDs has been activated');
       return;
     }
 
     let createdTerminal: Terminal;
     createdTerminal = new Terminal(name, shellPath, shellArgs, location);
     createdTerminal.show();
-    this._activeTerminals.push({ instance: createdTerminal, id: uniquePath });
+    this._activeTerminals.push({ instance: createdTerminal, id: uniqueFileName });
 
     return createdTerminal;
   }

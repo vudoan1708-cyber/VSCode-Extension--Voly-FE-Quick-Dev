@@ -18,7 +18,7 @@ import { FolderView, ShareLocalView, SettingView } from './ui';
 import UICommands from './uiCommands';
 
 // Helpers
-import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUDED_LIST } from './constants';
+import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUSION_LIST } from './constants';
 import { findInstantiables, traceSourcesOfImport } from './helpers';
 
 // Types
@@ -34,6 +34,11 @@ let rootDirectory: string | undefined = vscode.workspace.workspaceFolders
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 export async function activate(context: vscode.ExtensionContext) {
+	if (!rootDirectory) {
+		vscode.window.showErrorMessage(`Cannot find root directory. Possibly due to no active document on VSCode.
+		Please select a random file and reload VSCode so that the extension can work properly`);
+		return;
+	}
 	// Azure relay hybrid connection
 	const hybridConnector = new RelayHybridConnectionFactory();
 	// Server
@@ -157,13 +162,13 @@ class FrontendQuickDevExtension {
 		}
 
 		// Check for the exclude list
-		if (EXCLUDED_LIST.includes(path.basename(rootDirectory || ''))) {
+		if (EXCLUSION_LIST.includes(path.basename(rootDirectory || ''))) {
 			console.warn(`[volyfequickdev] ${path.basename(rootDirectory || '')} is not a target for the extension to run on`);
 			return;
 		}
 
-		const sources = traceSourcesOfImport(document.fileName, { stopTillNotFound: 'src' });
 		const instantiables = findInstantiables(document.fileName, { stopTillNotFound: 'src' }).filter((i) => i.fullPath && i.fileName);
+		const sources = traceSourcesOfImport(document.fileName, { stopTillNotFound: 'src' });
 
 		let selectedApproach: Instantiable[];
 
@@ -192,6 +197,10 @@ class FrontendQuickDevExtension {
 
 		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies of them to the extension\'s local workspace...');
 
+		// Relocate the root directory - useful when a dev is working in a multiworkspace window, or if there is no active document when VSCode extension got initialised
+		rootDirectory = vscode.workspace.workspaceFolders
+			?.map((folder) => folder.uri.fsPath)
+			?.find((fsPath) => document.fileName.startsWith(fsPath));
 		// Locate the build folder
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 

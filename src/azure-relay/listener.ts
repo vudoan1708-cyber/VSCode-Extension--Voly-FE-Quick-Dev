@@ -54,6 +54,9 @@ export default class RelayListener {
               parsed.data.forEach((file: { fileName: string, bits: string }) => {
                 fs.writeFileSync(path.join(pathToNewDevBuildsFolder, file.fileName), file.bits, 'base64');
               });
+        			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
+
+              vscode.window.showInformationMessage('You have recieved new files from a FE developer. Open the file explorer to check out');
             }
             return;
           }

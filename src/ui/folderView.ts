@@ -69,11 +69,6 @@ export class BuiltFile extends vscode.TreeItem {
     this.tooltip = this.fullPath;
   }
 
-  // iconPath = {
-	// 	light: path.join(__filename, '..', 'icon', 'light', 'dependency.svg'),
-	// 	dark: path.join(__filename, '..', 'icon', 'dark', 'dependency.svg')
-	// };
-
   // This is to ensure theme icon is applied correctly
   resourceUri = vscode.Uri.file(this.fullPath);
 

@@ -5,7 +5,7 @@ export const SENDERS = [
   'vu@voly.co.uk',
   'dariusz@voly.co.uk',
 ];
-export const EXCLUDED_LIST = [
+export const EXCLUSION_LIST = [
   'voly-modular-ui',
   'ui-components',
   'ui-prototypes',

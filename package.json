@@ -20,14 +20,17 @@
 		"commands": [
 			{
 				"command": "volyfequickdev.folder-explorer.remove-dev-builds-folder",
-				"title": "Voly Frontend Quick Dev: Remove the dev-builds folder"
+				"category": "Voly FE Quick Dev",
+				"title": "Remove the dev-builds folder"
 			},
 			{
 				"command": "volyfequickdev.folder-explorer.remove-entry",
+				"category": "Voly FE Quick Dev",
 				"title": "Remove"
 			},
 			{
 				"command": "volyfequickdev.folder-explorer.refresh-entry",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh",
 				"icon": {
 					"light": "icon/light/refresh.svg",
@@ -36,6 +39,7 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.connect",
+				"category": "Voly FE Quick Dev",
 				"title": "Connect",
 				"icon": {
 					"light": "icon/light/add.svg",
@@ -44,6 +48,7 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.share",
+				"category": "Voly FE Quick Dev",
 				"title": "Share",
 				"icon": {
 					"light": "icon/light/add.svg",
@@ -52,14 +57,17 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.set-session-id",
+				"category": "Voly FE Quick Dev",
 				"title": "Add Session Id"
 			},
 			{
 				"command": "volyfequickdev.share-local.refresh-view",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh"
 			},
 			{
 				"command": "volyfequickdev.settings.close-server",
+				"category": "Voly FE Quick Dev",
 				"title": "Close server",
 				"icon": {
 					"light": "icon/light/toggle-on.svg",
@@ -68,6 +76,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.restart-server",
+				"category": "Voly FE Quick Dev",
 				"title": "Restart server",
 				"icon": {
 					"light": "icon/light/toggle-off.svg",
@@ -76,6 +85,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.activate-extension",
+				"category": "Voly FE Quick Dev",
 				"title": "Activate extension",
 				"icon": {
 					"light": "icon/light/toggle-off.svg",
@@ -84,6 +94,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.deactivate-extension",
+				"category": "Voly FE Quick Dev",
 				"title": "Deactivate extension",
 				"icon": {
 					"light": "icon/light/toggle-on.svg",
@@ -92,6 +103,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.refresh-view",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh"
 			}
 		],
@@ -119,7 +131,7 @@
 				},
 				{
 					"id": "volyfequickdev-settings",
-					"name": "Server Settings",
+					"name": "Extension Settings",
 					"contextualTitle": "Extension settings"
 				},
 				{

@@ -35,8 +35,8 @@ const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 export async function activate(context: vscode.ExtensionContext) {
 	if (!rootDirectory) {
-		vscode.window.showErrorMessage(`Cannot find root directory. Possibly due to no active document on VSCode.
-		Please select a random file and reload VSCode so that the extension can work properly`);
+		vscode.window.showErrorMessage(`Cannot find root directory. Possibly due to no active document found on VSCode.
+		Please select any file in the interested workspace and reload VSCode so that the extension can work properly`);
 		return;
 	}
 	// Azure relay hybrid connection
@@ -167,7 +167,14 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		const instantiables = findInstantiables(document.fileName, { stopTillNotFound: 'src' }).filter((i) => i.fullPath && i.fileName);
+		const instantiables = findInstantiables(
+			document.fileName,
+			{
+				stopTillNotFound: 'src',
+				visitedButTerminated: !this._terminalFactoryInstance.findByUniquePath(document.fileName),
+			})
+			.filter((i) => i.fullPath && i.fileName);
+		// TODO: may need to skip this operation if the one above is sufficient enough - instantiables.length === 1?
 		const sources = traceSourcesOfImport(document.fileName, { stopTillNotFound: 'src' });
 
 		let selectedApproach: Instantiable[];
@@ -180,7 +187,11 @@ class FrontendQuickDevExtension {
 		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal
-		const terminal = this._terminalFactoryInstance.createTerminal(`volyfequickdev terminal: ${savedFileName}`, instantiableDataComponent);
+		const terminal = this._terminalFactoryInstance.createTerminal(
+			`volyfequickdev terminal: ${savedFileName}`,
+			instantiableDataComponent,
+			document.fileName,
+		);
 		if (!terminal) {
 			return;
 		}

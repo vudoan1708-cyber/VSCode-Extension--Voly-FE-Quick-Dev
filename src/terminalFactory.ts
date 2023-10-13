@@ -3,13 +3,18 @@ import * as vscode from 'vscode';
 import Terminal from './terminal';
 
 export default class TerminalFactory {
-  private _activeTerminals: Array<{ instance: Terminal, id: string }> = [];
+  private _activeTerminals: Array<{ instance: Terminal, id: string, uniquePath: string }> = [];
 
   constructor() {}
+
+  public findByUniquePath(absolute: string) {
+    return this._activeTerminals.find((t) => t.uniquePath === absolute);
+  }
 
   public createTerminal(
     name: string,
     uniqueFileName: string,
+    uniquePath: string,
     shellPath?: string,
     shellArgs?: string,
     location?: vscode.TerminalLocation
@@ -31,7 +36,7 @@ export default class TerminalFactory {
     let createdTerminal: Terminal;
     createdTerminal = new Terminal(name, shellPath, shellArgs, location);
     createdTerminal.show();
-    this._activeTerminals.push({ instance: createdTerminal, id: uniqueFileName });
+    this._activeTerminals.push({ instance: createdTerminal, id: uniqueFileName, uniquePath });
 
     return createdTerminal;
   }

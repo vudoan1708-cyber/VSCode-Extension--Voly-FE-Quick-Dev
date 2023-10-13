@@ -21,6 +21,7 @@ function findInstantiationComment(absolute: string): { dataComponent: string | n
 
 type TraceOptions = {
   stopTillNotFound: string;
+  visitedButTerminated?: boolean;
   initiables?: Instantiable[];
 };
 
@@ -30,7 +31,10 @@ const visited: Record<string, boolean> = {};
  * and it will stop as soon as the condition is satisfied
  * @param pathToFile path to a saved file
  */
-export function findInstantiables(pathToFile: string, { stopTillNotFound }: TraceOptions): Instantiable[] {
+export function findInstantiables(pathToFile: string, { stopTillNotFound, visitedButTerminated }: TraceOptions): Instantiable[] {
+  // If terminal for that file is terminated, then falsify the visited value
+  visited[pathToFile] = !visitedButTerminated;
+
   const found: Instantiable[] = [];
   let customPath = pathToFile;
 

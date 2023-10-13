@@ -42,4 +42,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
     - Despite the new source trace logic, ```livereload``` uses up a lot of computational resource even with just 3 open terminals. Might be resolved by developers themselves by manually close unused ones.
 ## [12/10/2023]
 - Completely stop the extension from working if the root directory in a workspace is not found due to its role in the extension's functionalities. Developers must select a random file and reload VSCode to it to work properly.
+## [13/10/2023]
+- Externally required modules needed to be part of the inclusion list in ```.vscodeignore``` so that it will not be ignored when being packaged. This problem was only found when the extension was side loaded to other developers for testing purposes, and it has now been fixed.
 <br />

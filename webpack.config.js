@@ -24,7 +24,8 @@ const extensionConfig = {
   externals: {
     vscode: 'commonjs vscode', // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
     // Reference: https://stackoverflow.com/questions/58955254/getting-typeerror-wsc-require-is-not-a-function-for-hyco-ws-npm-package
-    'hyco-ws': path.resolve(__dirname, 'node_modules', 'hyco-ws'),
+    'hyco-ws': 'hyco-ws',
+    'express': 'express',
     // modules added here also need to be added in the .vscodeignore file
   },
   // Reference: https://stackoverflow.com/questions/54261938/dotenv-webpack-in-production

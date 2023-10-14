@@ -7,10 +7,6 @@ This extension is used to help speed up the frontend development process at Voly
 ![Statically served files](https://ui.voly.co.uk/extension-media/volyfequickdev-treeview.png)
 <br /><sup>Statically served files are accessible from a working workspace</sup>
 
-## Requirements
-
-Run ```npm ci``` to install all the necesssary dependencies
-
 ## Extension Settings
 
 No settings required
@@ -23,16 +19,7 @@ No settings required
 
 ### 1.0.0
 
-Initial release of ...
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+- Making use of rollup build in watch mode, the extension listens on document save event to trigger 2 commands to generate instantiation scripts and build the corresponding components.
+- The Folder Explorer section from the activity bar provides a mini workspace to keep track of built files, and an ability remove them if necessary.
+- The Extension Settings section allows dev to close and reopen the server, globally activate and deactivate the extension.
+- The Shareable Local Connection section allows frontend dev to connect to another dev - specifically a backend dev - to transfer built component files (share their local with others) and changes can then be seen by both parties. This is currently limited to one connection per dev.

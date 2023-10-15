@@ -161,7 +161,7 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		// Check for the exclude list
+		// Check for the exclusion list
 		if (EXCLUSION_LIST.includes(path.basename(rootDirectory || ''))) {
 			console.warn(`[volyfequickdev] ${path.basename(rootDirectory || '')} is not a target for the extension to run on`);
 			return;

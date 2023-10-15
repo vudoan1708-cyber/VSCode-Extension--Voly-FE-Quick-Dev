@@ -44,7 +44,7 @@ export default class RelayListener {
           // Session ID matching exercise for sanity check
           if (receivedSessionId === parsed.sessionId) {
             if (parsed.data && parsed.reason === 'fileSend') {
-              const pathToNewDevBuildsFolder = path.join(rootDirFromTheBackendSide, 'dev-builds');
+              const pathToNewDevBuildsFolder = path.join(rootDirFromTheBackendSide, 'build');
 
               console.log('pathToNewDevBuildsFolder', pathToNewDevBuildsFolder);
 

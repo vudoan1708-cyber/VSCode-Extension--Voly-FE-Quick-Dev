@@ -19,10 +19,28 @@ function findInstantiationComment(absolute: string): { dataComponent: string | n
   return { dataComponent: object?.attr['DATA-COMPONENT'] || null };
 }
 
+function removeDuplicates(original: Instantiable[]): Instantiable[] {
+  const unique: Set<Instantiable['fullPath']> = new Set();
+  original.forEach((r) => {
+    unique.add(r.fullPath);
+  });
+
+  // If the unique set has a different size to the length of results, there must be duplicates
+  if (unique.size !== original.length) {
+    original = original.filter((r) => {
+      const hasValue = unique.has(r.fullPath);
+      unique.delete(r.fullPath);
+      return hasValue;
+    });
+  }
+
+  return original;
+}
+
 type TraceOptions = {
   stopTillNotFound: string;
   visitedButTerminated?: boolean;
-  initiables?: Instantiable[];
+  initialValue?: Instantiable[];
 };
 
 const visited: Record<string, boolean> = {};
@@ -91,18 +109,23 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
  *
  * e.g: Saved component is Test.svelte, App.svelte is the only component that imports it - hence, only App.svelte is returned
  * @param pathToSavedFile The path to the saved file
- * @param traceOptions The options include a trace stop sign (a folder name) and all found initiables (optional)
+ * @param traceOptions The options include a trace stop sign (a folder name) and all found instantiables (optional)
  */
 export function traceSourcesOfImport(
-  pathToSavedFile: string, { stopTillNotFound, initiables = [] }: TraceOptions
+  pathToSavedFile: string, { stopTillNotFound, initialValue = [] }: TraceOptions
 ): Instantiable[] {
   const dir = path.dirname(pathToSavedFile);
   if (!dir.includes(stopTillNotFound)) {
-    return initiables;
+    return initialValue;
   }
 
+  let foundFilesContainsNoComment: string[] = [];
   const array = fs.readdirSync(dir)
-    .filter((file) => !fs.statSync(path.join(dir, file)).isDirectory() && path.extname(file) === '.svelte')
+    .filter((file) => (
+      !fs.statSync(path.join(dir, file)).isDirectory()
+        && path.extname(file) === '.svelte'
+        && !file.includes('.stories.svelte')
+    ))
     .filter((file) => {
       const content = fs.readFileSync(path.join(dir, file), 'utf-8');
       const regex = new RegExp(`((import).*(${path.basename(pathToSavedFile)}))`);
@@ -110,14 +133,28 @@ export function traceSourcesOfImport(
       return regex.test(content);
     })
     .map((file) => {
-      const instantiable = findInstantiationComment(path.join(dir, file));
+      const absolutePath = path.join(dir, file);
+      const instantiable = findInstantiationComment(absolutePath);
+
+      if (!instantiable.dataComponent) {
+        foundFilesContainsNoComment.push(absolutePath);
+      }
 
       return {
-        fullPath: path.join(dir, file),
+        fullPath: absolutePath,
         fileName: `${instantiable.dataComponent}.js`,
       };
     })
     .filter((result) => !result.fileName.includes('null.js'));
 
-  return traceSourcesOfImport(dir, { stopTillNotFound, initiables: [ ...initiables, ...array ] });
+  // If sources of import found but no instantiation comment found, trace from those that import the saved file
+  if (foundFilesContainsNoComment.length > 0 && array.length === 0) {
+    let results = foundFilesContainsNoComment.map((filePath) => (
+      traceSourcesOfImport(filePath, { stopTillNotFound, initialValue: [ ...initialValue, ...array ] })
+    ))
+    .flat();
+
+    return removeDuplicates(results);
+  }
+  return traceSourcesOfImport(dir, { stopTillNotFound, initialValue: [ ...initialValue, ...array ] });
 }

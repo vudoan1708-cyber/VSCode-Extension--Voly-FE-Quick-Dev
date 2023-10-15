@@ -23,3 +23,6 @@ No settings required
 - The Folder Explorer section from the activity bar provides a mini workspace to keep track of built files, and an ability remove them if necessary.
 - The Extension Settings section allows dev to close and reopen the server, globally activate and deactivate the extension.
 - The Shareable Local Connection section allows frontend dev to connect to another dev - specifically a backend dev - to transfer built component files (share their local with others) and changes can then be seen by both parties. This is currently limited to one connection per dev.
+
+### 1.1.0
+- In the previous version, there was a lackage of deep trace for sources of import, meaning once the extension finds component(s) that is / are importing the saved file, the operation terminates regardless of any valid instantiation comment. We will now have an ability to traverse deeper into the sources of import when a saved file is a child component whose immediate parent component does not contain an instantiation comment.

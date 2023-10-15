@@ -46,4 +46,19 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Externally required modules needed to be part of the inclusion list in ```.vscodeignore``` so that they will not be ignored when being packaged. This problem was only found when the extension was side loaded to other developers for testing purposes, and it has now been fixed.
   ### Constraints:
     - UI-Loader hard-coded timeout of 200ms for the fetch API doesn’t actually work for Dariusz. Whilst some network connections only need less than 200ms for a fetch to complete, others will require a bit more. This problem could be fixed with personalised timeout.
+## [15/10/2023]
+- In the previous version, there was a lackage of deep trace for sources of import, meaning once the extension finds component(s) that is / are importing the saved file, the operation terminates regardless of any valid instantiation comment. We will now have an ability to traverse deeper into the sources of import when a saved file is a child component whose immediate parent component does not contain an instantiation comment. E.g.<br />
+  - BigParent.svelte (instantiation comment ✅)<br />
+  |->Parent.svelte (instantiation comment ❌)<br />
+    &emsp;|->Child.svelte (saved target)
+  ```typescript
+  BigParent.svelte
+  import Parent from 'Parent.svelte';
+    ⬆️
+  Parent.svelte
+  import Child from 'Child.svelte';
+    ⬆️
+  Child.svelte
+  // This is the saved file, the operation should trace down the root where instantiation comment will be found...
+  ```
 <br />

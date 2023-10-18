@@ -43,7 +43,7 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 ## [12/10/2023]
 - Completely stop the extension from working if the root directory in a workspace is not found due to its role in the extension's functionalities. Developers must select a random file and reload VSCode to it to work properly.
 ## [13/10/2023]
-- Externally required modules needed to be part of the inclusion list in ```.vscodeignore``` so that they will not be ignored when being packaged. This problem was only found when the extension was side loaded to other developers for testing purposes, and it has now been fixed.
+- Externally required modules needed to be part of the inclusion list in ```.vscodeignore``` so that they will not be ignored when being packaged. This problem was only found when the extension was side loaded to other developers for testing purposes, and it has now been fixed.<br />
   ### Constraints:
     - UI-Loader hard-coded timeout of 200ms for the fetch API doesn’t actually work for Dariusz. Whilst some network connections only need less than 200ms for a fetch to complete, others will require a bit more. This problem could be fixed with personalised timeout.
 ## [15/10/2023]
@@ -61,4 +61,7 @@ All notable changes to the "volyfequickdev" extension will be documented in this
   Child.svelte
   // This is the saved file, the operation should trace down the root where instantiation comment will be found...
   ```
+- ```build``` folder needs watching on file creation and change events when transferring file using Azure relay, instead of ```dev-builds``` folder which only exists in the extension's workspace.
+## [18/10/2023]
+- Fixed issue with duplicate components to be instantiated and built in different terminal instances. This was due to not checking the visited paths and active terminal IDs when brute-force finding instantiables and tracing for sources of import.
 <br />

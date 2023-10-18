@@ -44,15 +44,13 @@ export default class RelayListener {
           // Session ID matching exercise for sanity check
           if (receivedSessionId === parsed.sessionId) {
             if (parsed.data && parsed.reason === 'fileSend') {
-              const pathToNewDevBuildsFolder = path.join(rootDirFromTheBackendSide, 'build');
+              const pathToNewBuildsFolder = path.join(rootDirFromTheBackendSide, 'build');
 
-              console.log('pathToNewDevBuildsFolder', pathToNewDevBuildsFolder);
-
-              if (!fs.existsSync(pathToNewDevBuildsFolder)) {
-                fs.mkdirSync(pathToNewDevBuildsFolder);
+              if (!fs.existsSync(pathToNewBuildsFolder)) {
+                fs.mkdirSync(pathToNewBuildsFolder);
               }
               parsed.data.forEach((file: { fileName: string, bits: string }) => {
-                fs.writeFileSync(path.join(pathToNewDevBuildsFolder, file.fileName), file.bits, 'base64');
+                fs.writeFileSync(path.join(pathToNewBuildsFolder, file.fileName), file.bits, 'base64');
               });
         			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
 

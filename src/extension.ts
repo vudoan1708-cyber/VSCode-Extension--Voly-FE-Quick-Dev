@@ -175,11 +175,17 @@ class FrontendQuickDevExtension {
 			})
 			.filter((i) => i.fullPath && i.fileName);
 		// TODO: may need to skip this operation if the one above is sufficient enough - instantiables.length === 1?
-		const sources = traceSourcesOfImport(document.fileName, { stopTillNotFound: 'src' });
+		const sources = traceSourcesOfImport(
+			document.fileName,
+			{
+				stopTillNotFound: 'src',
+				activeTerminalIds: this._terminalFactoryInstance.hashAllIds(),
+			}
+		);
 
 		let selectedApproach: Instantiable[];
 
-		if (sources.length === 0 || (instantiables.length > 0 && instantiables.length < sources.length)) {
+		if (sources.length === 0 || (instantiables.length > 0 && instantiables.length <= sources.length)) {
 			selectedApproach = [ ...instantiables ];
 		} else {
 			selectedApproach = [ ...sources ];
@@ -195,7 +201,6 @@ class FrontendQuickDevExtension {
 		if (!terminal) {
 			return;
 		}
-		vscode.window.showInformationMessage('Instantiating and building relevant component(s)...');
 
 		terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);
 		terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}"`);

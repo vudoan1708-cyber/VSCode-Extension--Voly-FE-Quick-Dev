@@ -26,3 +26,9 @@ No settings required
 
 ### 1.1.0
 - In the previous version, there was a lackage of deep trace for sources of import, meaning once the extension finds component(s) that is / are importing the saved file, the operation terminates regardless of any valid instantiation comment. We will now have an ability to traverse deeper into the sources of import when a saved file is a child component whose immediate parent component does not contain an instantiation comment.
+
+### 1.1.1
+- Cleanup code.
+
+### 1.1.2
+- Fixed issue with duplicate components to be instantiated and built in different terminal instances. This was due to not checking the visited paths and active terminal IDs when brute-force finding instantiables and tracing for sources of import.

@@ -11,6 +11,15 @@ export default class TerminalFactory {
     return this._activeTerminals.find((t) => t.uniquePath === absolute);
   }
 
+  public hashAllIds() {
+    const obj: { [key: string]: boolean } = {};
+    for (let i = 0; i < this._activeTerminals.length; i += 1){
+      const terminal = this._activeTerminals[i];
+      obj[terminal.id] = !!terminal.id;
+    }
+    return obj;
+  }
+
   public createTerminal(
     name: string,
     uniqueFileName: string,

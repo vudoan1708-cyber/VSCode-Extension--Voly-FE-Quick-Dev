@@ -19,6 +19,10 @@ function findInstantiationComment(absolute: string): { dataComponent: string | n
   return { dataComponent: object?.attr['DATA-COMPONENT'] || null };
 }
 
+/**
+ * This function is used when a saved file is imported from 2 high-level components which are imported in by the same parent component
+ * @param original The original array that has potential duplicates
+ */
 function removeDuplicates(original: Instantiable[]): Instantiable[] {
   const unique: Set<Instantiable['fullPath']> = new Set();
   original.forEach((r) => {
@@ -40,16 +44,17 @@ function removeDuplicates(original: Instantiable[]): Instantiable[] {
 type TraceOptions = {
   stopTillNotFound: string;
   visitedButTerminated?: boolean;
+  activeTerminalIds: Record<string, boolean>;
   initialValue?: Instantiable[];
 };
 
-const visited: Record<string, boolean> = {};
+const visited: Record<Instantiable['fullPath'], boolean> = {};
 /**
  * This function will try and find at least 1 instantiable component, starting from the saved file, going up directory levels
  * and it will stop as soon as the condition is satisfied
  * @param pathToFile path to a saved file
  */
-export function findInstantiables(pathToFile: string, { stopTillNotFound, visitedButTerminated }: TraceOptions): Instantiable[] {
+export function findInstantiables(pathToFile: string, { stopTillNotFound, visitedButTerminated }: Omit<TraceOptions, 'activeTerminalIds'>): Instantiable[] {
   // If terminal for that file is terminated, then falsify the visited value
   visited[pathToFile] = !visitedButTerminated;
 
@@ -69,7 +74,7 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
       }
 
       // If path has been visited
-      if (visited[customPath]) {
+      if (visited[absolute]) {
         found.push({ fullPath: '', fileName: '' });
         return;
       }
@@ -86,9 +91,8 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
     filesInDirectory.forEach((file) => {
       const absolute = path.join(_path_, file);
       check(absolute);
+      visited[absolute] = true;
     });
-
-    visited[_path_] = true;
   };
   
   while (found.length === 0) {
@@ -112,7 +116,7 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
  * @param traceOptions The options include a trace stop sign (a folder name) and all found instantiables (optional)
  */
 export function traceSourcesOfImport(
-  pathToSavedFile: string, { stopTillNotFound, initialValue = [] }: TraceOptions
+  pathToSavedFile: string, { stopTillNotFound, activeTerminalIds, initialValue = [] }: TraceOptions
 ): Instantiable[] {
   const dir = path.dirname(pathToSavedFile);
   if (!dir.includes(stopTillNotFound)) {
@@ -145,16 +149,15 @@ export function traceSourcesOfImport(
         fileName: `${instantiable.dataComponent}.js`,
       };
     })
-    .filter((result) => !result.fileName.includes('null.js'));
+    .filter((result) => !result.fileName.includes('null.js') && !activeTerminalIds[result.fileName]);
 
-  // If sources of import found but no instantiation comment found, trace from those that import the saved file
+    // If sources of import found but no instantiation comment found, trace from those that import the saved file
   if (foundFilesContainsNoComment.length > 0 && array.length === 0) {
     let results = foundFilesContainsNoComment.map((filePath) => (
-      traceSourcesOfImport(filePath, { stopTillNotFound, initialValue: [ ...initialValue, ...array ] })
-    ))
-    .flat();
+      traceSourcesOfImport(filePath, { stopTillNotFound, activeTerminalIds, initialValue: [ ...initialValue, ...array ] })
+    )).flat();
 
     return removeDuplicates(results);
   }
-  return traceSourcesOfImport(dir, { stopTillNotFound, initialValue: [ ...initialValue, ...array ] });
+  return traceSourcesOfImport(dir, { stopTillNotFound, activeTerminalIds, initialValue: [ ...initialValue, ...array ] });
 }

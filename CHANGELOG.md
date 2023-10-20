@@ -68,4 +68,5 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Update finding instantiables logic to ensure same component can be re-instantiated if the terminal process for it has been terminated.
 - Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.
 - Change server provider from Express to Koa for its lightweight dependencies and bundleable-ness with ```webpack```.
+- Allow all methods (the preflight request - OPTIONS - was blocked due to the setup in the allowed methods option for Koa server).
 <br />

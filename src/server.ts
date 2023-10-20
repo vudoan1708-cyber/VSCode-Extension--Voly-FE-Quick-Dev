@@ -30,7 +30,6 @@ export default class KoaApp {
       }
       return '';
     },
-    methods: 'GET',
     credentials: true,
   };
 

@@ -41,3 +41,6 @@ No settings required
 
 ### 1.1.5
 - Change server provider from Express to Koa for its lightweight dependencies and bundleable-ness with ```webpack```.
+
+### 1.1.6
+- Allow all methods (the preflight request - OPTIONS - was blocked due to the setup in the allowed methods option for Koa server).

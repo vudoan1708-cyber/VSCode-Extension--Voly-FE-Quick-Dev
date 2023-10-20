@@ -171,7 +171,8 @@ class FrontendQuickDevExtension {
 			document.fileName,
 			{
 				stopTillNotFound: 'src',
-				visitedButTerminated: !this._terminalFactoryInstance.findByUniquePath(document.fileName),
+				savedFilePathExist: this._terminalFactoryInstance.activePathsExist(document.fileName),
+				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
 			})
 			.filter((i) => i.fullPath && i.fileName);
 		// TODO: may need to skip this operation if the one above is sufficient enough - instantiables.length === 1?
@@ -179,7 +180,7 @@ class FrontendQuickDevExtension {
 			document.fileName,
 			{
 				stopTillNotFound: 'src',
-				activeTerminalIds: this._terminalFactoryInstance.hashAllIds(),
+				activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
 			}
 		);
 
@@ -196,6 +197,7 @@ class FrontendQuickDevExtension {
 		const terminal = this._terminalFactoryInstance.createTerminal(
 			`volyfequickdev terminal: ${savedFileName}`,
 			instantiableDataComponent,
+			instantiablePath,
 			document.fileName,
 		);
 		if (!terminal) {

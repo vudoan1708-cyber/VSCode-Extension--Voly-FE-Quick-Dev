@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { Instantiable } from './types';
+import { IGNOREABLE_FOLDER_NAME_RULES } from './constants';
 
 function findInstantiationComment(absolute: string): { dataComponent: string | null } {
   const content = fs.readFileSync(absolute, 'utf8');
@@ -43,20 +44,22 @@ function removeDuplicates(original: Instantiable[]): Instantiable[] {
 
 type TraceOptions = {
   stopTillNotFound: string;
-  visitedButTerminated?: boolean;
+  terminatedTerminalPaths: Record<string, boolean>;
+  savedFilePathExist: boolean;
   activeTerminalIds: Record<string, boolean>;
   initialValue?: Instantiable[];
 };
 
-const visited: Record<Instantiable['fullPath'], boolean> = {};
+const visited: Record<string, boolean> = {};
+
 /**
  * This function will try and find at least 1 instantiable component, starting from the saved file, going up directory levels
  * and it will stop as soon as the condition is satisfied
  * @param pathToFile path to a saved file
  */
-export function findInstantiables(pathToFile: string, { stopTillNotFound, visitedButTerminated }: Omit<TraceOptions, 'activeTerminalIds'>): Instantiable[] {
-  // If terminal for that file is terminated, then falsify the visited value
-  visited[pathToFile] = !visitedButTerminated;
+export function findInstantiables(pathToFile: string, { stopTillNotFound, savedFilePathExist, terminatedTerminalPaths }: Omit<TraceOptions, 'activeTerminalIds'>): Instantiable[] {
+  // If terminal for the saved file is terminated, and falsify it directly
+  visited[pathToFile] = savedFilePathExist;
 
   const found: Instantiable[] = [];
   let customPath = pathToFile;
@@ -73,8 +76,8 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
         return;
       }
 
-      // If path has been visited
-      if (visited[absolute]) {
+      // If path has been visited but associated terminal not terminated
+      if (visited[absolute] && !terminatedTerminalPaths[absolute]) {
         found.push({ fullPath: '', fileName: '' });
         return;
       }
@@ -90,6 +93,11 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
     const filesInDirectory = fs.readdirSync(_path_);
     filesInDirectory.forEach((file) => {
       const absolute = path.join(_path_, file);
+
+      if (IGNOREABLE_FOLDER_NAME_RULES.test(absolute)) {
+        return;
+      }
+
       check(absolute);
       visited[absolute] = true;
     });
@@ -116,7 +124,7 @@ export function findInstantiables(pathToFile: string, { stopTillNotFound, visite
  * @param traceOptions The options include a trace stop sign (a folder name) and all found instantiables (optional)
  */
 export function traceSourcesOfImport(
-  pathToSavedFile: string, { stopTillNotFound, activeTerminalIds, initialValue = [] }: TraceOptions
+  pathToSavedFile: string, { stopTillNotFound, activeTerminalIds, initialValue = [] }: Omit<TraceOptions, 'terminatedTerminalPaths' | 'savedFilePathExist'>
 ): Instantiable[] {
   const dir = path.dirname(pathToSavedFile);
   if (!dir.includes(stopTillNotFound)) {

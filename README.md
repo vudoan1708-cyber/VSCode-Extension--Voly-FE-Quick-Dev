@@ -32,3 +32,6 @@ No settings required
 
 ### 1.1.2
 - Fixed issue with duplicate components to be instantiated and built in different terminal instances. This was due to not checking the visited paths and active terminal IDs when brute-force finding instantiables and tracing for sources of import.
+
+### 1.1.3
+- Update finding instantiables logic to ensure same component can be re-instantiated if the terminal process for it has been terminated.

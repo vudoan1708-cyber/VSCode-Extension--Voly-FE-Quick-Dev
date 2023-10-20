@@ -2,16 +2,23 @@ import * as vscode from 'vscode';
 
 import Terminal from './terminal';
 
+type TerminalRecord = { instance: Terminal, id: string, uniquePathsPerInstance: string, savedTargetPath: string };
+
 export default class TerminalFactory {
-  private _activeTerminals: Array<{ instance: Terminal, id: string, uniquePath: string }> = [];
+  private _activeTerminals: Array<TerminalRecord> = [];
+  private _terminatedTerminals: { [key: TerminalRecord['uniquePathsPerInstance']]: boolean } = {};
 
   constructor() {}
 
-  public findByUniquePath(absolute: string) {
-    return this._activeTerminals.find((t) => t.uniquePath === absolute);
+  public findTerminatedPaths() {
+    return this._terminatedTerminals;
   }
 
-  public hashAllIds() {
+  public activePathsExist(absolute: string) {
+    return !!this._activeTerminals.find((t) => t.uniquePathsPerInstance.includes(absolute));
+  }
+
+  public hashActiveIds() {
     const obj: { [key: string]: boolean } = {};
     for (let i = 0; i < this._activeTerminals.length; i += 1){
       const terminal = this._activeTerminals[i];
@@ -23,7 +30,8 @@ export default class TerminalFactory {
   public createTerminal(
     name: string,
     uniqueFileName: string,
-    uniquePath: string,
+    uniquePathsPerInstance: string,
+    savedTargetPath: string,
     shellPath?: string,
     shellArgs?: string,
     location?: vscode.TerminalLocation
@@ -45,7 +53,14 @@ export default class TerminalFactory {
     let createdTerminal: Terminal;
     createdTerminal = new Terminal(name, shellPath, shellArgs, location);
     createdTerminal.show();
-    this._activeTerminals.push({ instance: createdTerminal, id: uniqueFileName, uniquePath });
+
+    this._activeTerminals.push({
+      instance: createdTerminal,
+      id: uniqueFileName,
+      uniquePathsPerInstance,
+      savedTargetPath,
+    });
+    delete this._terminatedTerminals[uniquePathsPerInstance];
 
     return createdTerminal;
   }
@@ -53,7 +68,12 @@ export default class TerminalFactory {
   public async terminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
     try {
       const exitStatus = await terminal.close();
-      this._activeTerminals = this._activeTerminals.filter((t) => t.instance.name !== terminal.name);
+      this._activeTerminals = this._activeTerminals.filter((t) => {
+        if (t.instance.name === terminal.name) {
+          this._terminatedTerminals[t.uniquePathsPerInstance] = true;
+        }
+        return t.instance.name !== terminal.name;
+      });
       return exitStatus;
     } catch {
       return { code: undefined, reason: 0 };

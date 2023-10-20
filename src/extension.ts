@@ -186,7 +186,7 @@ class FrontendQuickDevExtension {
 
 		let selectedApproach: Instantiable[];
 
-		if (sources.length === 0 || (instantiables.length > 0 && instantiables.length <= sources.length)) {
+		if (sources.length === 0 && instantiables.length > 0) {
 			selectedApproach = [ ...instantiables ];
 		} else {
 			selectedApproach = [ ...sources ];

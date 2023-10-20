@@ -6,4 +6,4 @@ export const EXCLUSION_LIST = [
   'ui-components',
   'ui-prototypes',
 ];
-export const IGNOREABLE_FOLDER_NAME_RULES = /(mock).*|data|(api).*|(helper).*/;
+export const IGNOREABLE_FOLDER_NAME_RULES = /(mock).*|(data).*|(api).*|(helper).*|(test).*|(util)/i;

@@ -35,3 +35,6 @@ No settings required
 
 ### 1.1.3
 - Update finding instantiables logic to ensure same component can be re-instantiated if the terminal process for it has been terminated.
+
+### 1.1.4
+- Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.

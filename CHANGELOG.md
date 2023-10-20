@@ -65,5 +65,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 ## [18/10/2023]
 - Fixed issue with duplicate components to be instantiated and built in different terminal instances. This was due to not checking the visited paths and active terminal IDs when brute-force finding instantiables and tracing for sources of import.
 ## [20/10/2023]
-- Update finding instantiables logic to ensure same component can be re-instantiated if the terminal process for it has been terminated
+- Update finding instantiables logic to ensure same component can be re-instantiated if the terminal process for it has been terminated.
+- Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.
 <br />

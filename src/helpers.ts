@@ -127,6 +127,7 @@ export function traceSourcesOfImport(
   pathToSavedFile: string, { stopTillNotFound, activeTerminalIds, initialValue = [] }: Omit<TraceOptions, 'terminatedTerminalPaths' | 'savedFilePathExist'>
 ): Instantiable[] {
   const dir = path.dirname(pathToSavedFile);
+
   if (!dir.includes(stopTillNotFound)) {
     return initialValue;
   }

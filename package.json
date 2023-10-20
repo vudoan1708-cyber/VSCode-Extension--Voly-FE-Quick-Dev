@@ -3,7 +3,7 @@
 	"displayName": "Voly FE Quick Dev",
 	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file and in conjunction with other internal tools)",
 	"icon": "icon/voly.png",
-	"version": "1.1.4",
+	"version": "1.1.5",
 	"engines": {
 		"vscode": "^1.82.0"
 	},
@@ -203,10 +203,14 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/cors": "^2.8.14",
-		"@types/express": "^4.17.18",
 		"@types/glob": "^7.2.0",
 		"@types/hyco-ws": "^1.0.4",
+		"@types/koa": "^2.13.10",
+		"@types/koa-cors": "0.0.4",
+		"@types/koa-json": "^2.0.22",
+		"@types/koa-mount": "^4.0.4",
+		"@types/koa-router": "^7.4.6",
+		"@types/koa-static": "^4.0.3",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "14.x",
 		"@types/vscode": "^1.82.0",
@@ -223,10 +227,14 @@
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
-		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
-		"express": "^4.18.2",
 		"hyco-ws": "^1.0.5",
+		"koa": "^2.14.2",
+		"koa-cors": "0.0.16",
+		"koa-json": "^2.0.2",
+		"koa-mount": "^4.0.0",
+		"koa-router": "^11.0.2",
+		"koa-static": "^5.0.0",
 		"portfinder": "^1.0.32"
 	}
 }

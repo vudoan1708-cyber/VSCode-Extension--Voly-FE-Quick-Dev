@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
 
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
+import Koa, { Request } from 'koa';
+import Router from 'koa-router';
+
+import json from 'koa-json';
+import cors from 'koa-cors';
+import serve from 'koa-static';
+import mount from 'koa-mount';
+
 import { getPort, setBasePort, setHighestPort } from 'portfinder';
 
 import http from 'http';
@@ -11,40 +17,38 @@ import fs from 'fs';
 // Constant
 import { DEV_BUILD_FOLDER } from './constants';
 
-export default class ExpressApp {
-  private _instance: Application;
+export default class KoaApp {
+  private _instance: Koa;
+  private _router: Router;
   private _serverApp: http.Server<any>;
 	private _serverPortOptions: number[] = [ 8090, 9000 ];
   private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost', 'voly.docker' ];
-  private _corsOptions: cors.CorsOptions = {
-    origin: (origin, callback) => {
-      if (this._whitelist.indexOf(origin || '') > -1 || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+  private _corsOptions: cors.Options = {
+    origin: (request: Request) => {
+      if (this._whitelist.indexOf(request.headers.origin || '') > -1 || !request.headers.origin) {
+        return request.headers.origin || '';
       }
+      return '';
     },
+    methods: 'GET',
     credentials: true,
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
   };
 
   public selectedPort: number;
 
   constructor(requestedPort?: number) {
-    this._instance = express();
-    this._instance.use(express.json());
-    this._instance.use(express.urlencoded({ extended: true }));
-    this._instance.use((_, res, next) => {
-      res.setHeader('Access-Control-Allow-Private-Network', 'true');
-      next();
-    });
+    this._instance = new Koa();
+    this._router = new Router();
+
+    this._instance.use(json());
     this._instance.use(cors(this._corsOptions));
+    this._instance.use(this._router.routes());
 
     // Set portfinder in case of user opening multiple instances of VSCode
     setBasePort(requestedPort || this._serverPortOptions[0]);
     setHighestPort(this._serverPortOptions[1]);
 
-    this._serverApp = http.createServer(this._instance);
+    this._serverApp = http.createServer(this._instance.callback());
     getPort((err, port) => {
       if (err) {
         vscode.window.showErrorMessage(`[volyfequickdev] ${err.message}`);
@@ -81,28 +85,30 @@ export default class ExpressApp {
   }
 
   public serveStatic() {
-    this._instance.use('/dev-builds', express.static(path.join(__dirname, '..', DEV_BUILD_FOLDER)));
+    this._instance.use(mount('/dev-builds', serve(path.join(__dirname, '..', DEV_BUILD_FOLDER))));
   }
 
   public initialiseRoutes() {
-    this._instance.get('/', (req: Request, res: Response) => {
-      res.json({
+    this._router.get('/', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
+      context.body = {
         message: 'Hello World from volyfequickdev',
-      });
+      };
+      next();
     });
-    this._instance.get('/dev-builds', (req: Request, res: Response) => {
+    this._router.get('/dev-builds', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
       try {
         const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
 
         if (dir.length > 0) {
-          res.json(dir.filter((file) => path.extname(file) !== '.map'));
+          context.body = dir.filter((file) => path.extname(file) !== '.map');
           return;
         }
-        res.json([]);
+        context.body = [];
       } catch (ex) {
         console.error(ex);
-        res.json([]);
+        context.body = [];
       }
+      next();
     });
   }
 }

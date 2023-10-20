@@ -9,7 +9,7 @@ import path from 'path';
 
 // Classes
 import TerminalFactory from './terminalFactory';
-import ExpressApp from './server';
+import KoaApp from './server';
 import User from './user';
 import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
@@ -35,14 +35,14 @@ const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
 export async function activate(context: vscode.ExtensionContext) {
 	if (!rootDirectory) {
-		vscode.window.showErrorMessage(`Cannot find root directory. Possibly due to no active document found on VSCode.
+		vscode.window.showErrorMessage(`[volyfequickdev] Cannot find root directory. Possibly due to no active document found on VSCode.
 		Please select any file in the interested workspace and reload VSCode so that the extension can work properly`);
 		return;
 	}
 	// Azure relay hybrid connection
 	const hybridConnector = new RelayHybridConnectionFactory();
 	// Server
-	const server = new ExpressApp(); 
+	const server = new KoaApp(); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
 	// User
 	const user = new User();
@@ -122,20 +122,20 @@ export function deactivate() {
 class FrontendQuickDevExtension {
 	private _context: vscode.ExtensionContext;
 	private _terminalFactoryInstance: TerminalFactory;
-	private _expressApp: ExpressApp;
+	private _koaApp: KoaApp;
 
 	constructor(
 		context: vscode.ExtensionContext,
-		server: ExpressApp,
+		server: KoaApp,
 		terminalFactory: TerminalFactory,
 	) {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
 		// Instantiate an express app
-		this._expressApp = server;
-		this._expressApp.initialiseRoutes();
-		this._expressApp.serveStatic();
+		this._koaApp = server;
+		this._koaApp.initialiseRoutes();
+		this._koaApp.serveStatic();
 	}
 
 	private _isEnabled() {
@@ -144,12 +144,12 @@ class FrontendQuickDevExtension {
 
 	public async run(document: vscode.TextDocument) {
 		if (!this._isEnabled()) {
-			console.warn('Extension is not enabled');
+			console.warn('[volyfequickdev] Extension is not enabled');
 			return;
 		}
 
 		if (document.languageId !== 'svelte' || document.fileName.includes('stories')) {
-			console.warn('Not a valid svelte component file');
+			console.warn('[volyfequickdev] Not a valid svelte component file');
 			return;
 		}
 

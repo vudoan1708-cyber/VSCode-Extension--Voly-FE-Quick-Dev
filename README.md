@@ -38,3 +38,6 @@ No settings required
 
 ### 1.1.4
 - Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.
+
+### 1.1.5
+- Change server provider from Express to Koa for its lightweight dependencies and bundleable-ness with ```webpack```.

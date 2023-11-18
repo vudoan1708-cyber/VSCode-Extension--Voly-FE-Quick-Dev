@@ -2,6 +2,14 @@
 .vscode-test/**
 out/**
 node_modules/**
+
+## Inclusion list
+!node_modules/hyco-ws
+!node_modules/moment
+!node_modules/ws
+!node_modules/ultron
+!node_modules/options
+
 src/**
 .gitignore
 .yarnrc
@@ -12,3 +20,4 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 .env_sample
+*.vsix

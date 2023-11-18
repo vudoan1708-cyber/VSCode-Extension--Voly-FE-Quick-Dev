@@ -1,13 +1,13 @@
 {
 	"name": "volyfequickdev",
 	"displayName": "Voly FE Quick Dev",
-	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file)",
+	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file and in conjunction with other internal tools)",
 	"icon": "icon/voly.png",
-	"version": "0.0.4",
+	"version": "1.1.6",
 	"engines": {
 		"vscode": "^1.82.0"
 	},
-	"publisher": "Voly",
+	"publisher": "VolyLtd",
 	"pricing": "Free",
 	"categories": [
 		"Other"
@@ -20,14 +20,17 @@
 		"commands": [
 			{
 				"command": "volyfequickdev.folder-explorer.remove-dev-builds-folder",
-				"title": "Voly Frontend Quick Dev: Remove the dev-builds folder"
+				"category": "Voly FE Quick Dev",
+				"title": "Remove the dev-builds folder"
 			},
 			{
 				"command": "volyfequickdev.folder-explorer.remove-entry",
+				"category": "Voly FE Quick Dev",
 				"title": "Remove"
 			},
 			{
 				"command": "volyfequickdev.folder-explorer.refresh-entry",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh",
 				"icon": {
 					"light": "icon/light/refresh.svg",
@@ -36,6 +39,7 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.connect",
+				"category": "Voly FE Quick Dev",
 				"title": "Connect",
 				"icon": {
 					"light": "icon/light/add.svg",
@@ -44,6 +48,7 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.share",
+				"category": "Voly FE Quick Dev",
 				"title": "Share",
 				"icon": {
 					"light": "icon/light/add.svg",
@@ -52,14 +57,17 @@
 			},
 			{
 				"command": "volyfequickdev.share-local.set-session-id",
+				"category": "Voly FE Quick Dev",
 				"title": "Add Session Id"
 			},
 			{
 				"command": "volyfequickdev.share-local.refresh-view",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh"
 			},
 			{
 				"command": "volyfequickdev.settings.close-server",
+				"category": "Voly FE Quick Dev",
 				"title": "Close server",
 				"icon": {
 					"light": "icon/light/toggle-on.svg",
@@ -68,6 +76,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.restart-server",
+				"category": "Voly FE Quick Dev",
 				"title": "Restart server",
 				"icon": {
 					"light": "icon/light/toggle-off.svg",
@@ -76,6 +85,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.activate-extension",
+				"category": "Voly FE Quick Dev",
 				"title": "Activate extension",
 				"icon": {
 					"light": "icon/light/toggle-off.svg",
@@ -84,6 +94,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.deactivate-extension",
+				"category": "Voly FE Quick Dev",
 				"title": "Deactivate extension",
 				"icon": {
 					"light": "icon/light/toggle-on.svg",
@@ -92,6 +103,7 @@
 			},
 			{
 				"command": "volyfequickdev.settings.refresh-view",
+				"category": "Voly FE Quick Dev",
 				"title": "Refresh"
 			}
 		],
@@ -100,7 +112,7 @@
 				{
 					"id": "volyfequickdev-viewSection",
 					"title": "Voly FE Quick Dev",
-					"icon": "./icon/voly.svg"
+					"icon": "./icon/voly.png"
 				}
 			]
 		},
@@ -119,7 +131,7 @@
 				},
 				{
 					"id": "volyfequickdev-settings",
-					"name": "Server Settings",
+					"name": "Extension Settings",
 					"contextualTitle": "Extension settings"
 				},
 				{
@@ -191,10 +203,14 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/cors": "^2.8.14",
-		"@types/express": "^4.17.18",
 		"@types/glob": "^7.2.0",
 		"@types/hyco-ws": "^1.0.4",
+		"@types/koa": "^2.13.10",
+		"@types/koa-cors": "0.0.4",
+		"@types/koa-json": "^2.0.22",
+		"@types/koa-mount": "^4.0.4",
+		"@types/koa-router": "^7.4.6",
+		"@types/koa-static": "^4.0.3",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "14.x",
 		"@types/vscode": "^1.82.0",
@@ -211,10 +227,14 @@
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
-		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
-		"express": "^4.18.2",
 		"hyco-ws": "^1.0.5",
+		"koa": "^2.14.2",
+		"koa-cors": "0.0.16",
+		"koa-json": "^2.0.2",
+		"koa-mount": "^4.0.0",
+		"koa-router": "^11.0.2",
+		"koa-static": "^5.0.0",
 		"portfinder": "^1.0.32"
 	}
 }

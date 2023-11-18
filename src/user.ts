@@ -1,10 +1,9 @@
 import { execSync } from 'child_process';
-import { SENDERS } from './constants';
 
 export default class User {
   private static _name = execSync('git config user.name', { encoding: 'utf-8' }).trim();
   private static _email = execSync('git config user.email', { encoding: 'utf-8' }).trim();
-  private static _role: 'frontend' | 'backend' = SENDERS.find((sender) => sender === User._email) ? 'frontend' : 'backend';
+  private static _role: 'frontend' | 'backend' = process.env.FRONTEND_DEV_EMAILS?.split(',').find((email) => email === User._email) ? 'frontend' : 'backend';
   private static connectedStatus: boolean;
 
   constructor() {}

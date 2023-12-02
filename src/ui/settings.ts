@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import ExpressApp from '../server';
+import KoaApp from '../server';
 
 type ServerSetting = {
   id: string;
@@ -11,18 +11,18 @@ type ServerSetting = {
 
 export default class SettingView implements vscode.TreeDataProvider<SettingItem> {
   private _extensionContext: vscode.ExtensionContext;
-  private _server: ExpressApp;
+  private _server: KoaApp;
   private _allItems: ServerSetting[];
   private _onDidChangeTreeData: vscode.EventEmitter<SettingItem | undefined | void> = new vscode.EventEmitter<SettingItem | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<SettingItem | undefined | void> = this._onDidChangeTreeData.event;
 
-  constructor(context: vscode.ExtensionContext, server: ExpressApp) {
+  constructor(context: vscode.ExtensionContext, server: KoaApp) {
     this._extensionContext = context;
     this._server = server;
   }
 
   private _getSettingItems(): SettingItem[] {
-    const serverListeningState = this._server.checkListeningState();
+    const serverListeningState = this._server.checkListeningState() || this._server.checkSecuredListeningState();
     const extensionActivationState = !!this._extensionContext.globalState.get('volyfequickdev_activated', true);
     this._allItems = [
       {
@@ -30,6 +30,13 @@ export default class SettingView implements vscode.TreeDataProvider<SettingItem>
         label: 'Server status',
         value: serverListeningState ? '✅' : '❌',
         rawValue: serverListeningState,
+        formatting: '\t\t\t',
+      },
+      {
+        id: 'protocolSwitch',
+        label: 'Network Protocol',
+        value: this._server.checkSecuredListeningState() ? 'HTTPS' : 'HTTP',
+        rawValue: this._server.checkSecuredListeningState() ? 'https' : 'http',
         formatting: '\t\t',
       },
       {
@@ -37,18 +44,18 @@ export default class SettingView implements vscode.TreeDataProvider<SettingItem>
         label: 'Active port',
         value: this._server.selectedPort,
         rawValue: this._server.selectedPort,
-        formatting: '\t\t',
+        formatting: '\t\t\t',
       },
       {
         id: 'extensionStat',
         label: 'Extension status',
         value: extensionActivationState ? '✅' : '❌',
         rawValue: extensionActivationState,
-        formatting: '\t',
+        formatting: '\t\t',
       },
     ];
     return this._allItems.map((i) => (
-      new SettingItem(i.id,i.rawValue, `${i.label}:${i.formatting}${i.value}`, vscode.TreeItemCollapsibleState.None)
+      new SettingItem(i.id, i.rawValue, `${i.label}:${i.formatting}${i.value}`, vscode.TreeItemCollapsibleState.None)
     ));
   }
 
@@ -77,6 +84,11 @@ export class SettingItem extends vscode.TreeItem {
 
     if (id === 'extensionStat') {
       this.contextValue = `${this.id}.activation-status.${this.rawValue}`;
+      return;
+    }
+    // Network protocol
+    if (id === 'protocolSwitch') {
+      this.contextValue = `${this.id}.${this.rawValue}`;
       return;
     }
     this.contextValue = this.id;

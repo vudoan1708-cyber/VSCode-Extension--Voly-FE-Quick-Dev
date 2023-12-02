@@ -69,4 +69,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.
 - Change server provider from Express to Koa for its lightweight dependencies and bundleable-ness with ```webpack```.
 - Allow all methods (the preflight request - OPTIONS - was blocked due to the setup in the allowed methods option for Koa server).
+## [02/12/2023]
+- Handle the opening and closing of the secure network protocol (https) for mobile testing.
 <br />

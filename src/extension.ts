@@ -18,7 +18,7 @@ import { FolderView, ShareLocalView, SettingView } from './ui';
 import UICommands from './uiCommands';
 
 // Helpers
-import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, EXCLUSION_LIST } from './constants';
+import { DEV_BUILD_FOLDER, DISABLE_KEYWORD, INCLUSTION_LIST } from './constants';
 import { findInstantiables, traceSourcesOfImport } from './helpers';
 
 // Types
@@ -76,11 +76,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 	const disposable10 = UICommands.toRefreshSharedConnection(connectionViewProvider);
 	// Settings
-	const disposable11 = UICommands.toCloseExpressServer(server);
-	const disposable12 = UICommands.toRestartExpressServer(server);
-	const disposable13 = UICommands.toRefreshSettingView(settingViewProvider);
+	const disposable11 = UICommands.toCloseExtensionServer(server);
+	const disposable12 = UICommands.toRestartExtensionServer(server);
+	const disposable13 = UICommands.toSwitchToHttp(server);
+	const disposable14 = UICommands.toSwitchToHttps(server);
+	const disposable15 = UICommands.toRefreshSettingView(settingViewProvider);
 
-	const disposable14 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable16 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -101,9 +103,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable9,
 		disposable10,
 		disposable11,
-		disposable12 as vscode.Disposable,
+		disposable12,
 		disposable13,
 		disposable14,
+		disposable15,
+		disposable16,
 	);
 }
 
@@ -161,8 +165,8 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		// Check for the exclusion list
-		if (EXCLUSION_LIST.includes(path.basename(rootDirectory || ''))) {
+		// If repo name is not in the inclusion list
+		if (!INCLUSTION_LIST.includes(path.basename(rootDirectory || ''))) {
 			console.warn(`[volyfequickdev] ${path.basename(rootDirectory || '')} is not a target for the extension to run on`);
 			return;
 		}
@@ -175,7 +179,7 @@ class FrontendQuickDevExtension {
 				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
 			})
 			.filter((i) => i.fullPath && i.fileName);
-		// TODO: may need to skip this operation if the one above is sufficient enough - instantiables.length === 1?
+		// Sources of import
 		const sources = traceSourcesOfImport(
 			document.fileName,
 			{

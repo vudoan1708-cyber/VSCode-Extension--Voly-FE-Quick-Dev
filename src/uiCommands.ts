@@ -10,7 +10,7 @@ import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFac
 
 // Classes
 import User from './user';
-import ExpressApp from './server';
+import KoaApp from './server';
 import SettingView from './ui/settings';
 
 export default class UICommands {
@@ -143,21 +143,21 @@ export default class UICommands {
   }
 
   /* Settings */
-  public static toCloseExpressServer(server: ExpressApp): vscode.Disposable {
+  public static toCloseExtensionServer(server: KoaApp): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.settings.close-server', () => {
       if (!server) {
         return;
       }
-      server.closeServer();
+      server.closeServer() || server.closeSecuredServer();
       vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
     });
   }
-  public static toRestartExpressServer(server: ExpressApp): vscode.Disposable | void {
-    if (!server) {
-      return;
-    }
-
+  public static toRestartExtensionServer(server: KoaApp): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.settings.restart-server', async () => {
+      if (!server) {
+        return;
+      }
+
       const port: string | undefined = await vscode.window.showInputBox({
         placeHolder: 'Type in a port number. Be advised to use the correct port that the UI-Loader can fetch from',
         value: server.selectedPort?.toString(),
@@ -167,6 +167,26 @@ export default class UICommands {
         return;
       }
       server.startServer(Number(port));
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+    });
+  }
+
+  // Network Protocols settings
+  public static toSwitchToHttp(server: KoaApp): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.http', () => {
+      if (!server) {
+        return;
+      }
+      server.startServer(server.selectedPort);
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+    });
+  }
+  public static toSwitchToHttps(server: KoaApp): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.https', () => {
+      if (!server) {
+        return;
+      }
+      server.startSecuredServer(server.selectedPort);
       vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
     });
   }

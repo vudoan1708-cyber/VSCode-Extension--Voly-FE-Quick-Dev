@@ -11,6 +11,7 @@ node_modules/**
 !node_modules/options
 
 src/**
+!src/ssl-certs
 .gitignore
 .yarnrc
 webpack.config.js

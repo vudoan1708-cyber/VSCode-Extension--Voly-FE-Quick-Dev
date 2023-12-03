@@ -42,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Azure relay hybrid connection
 	const hybridConnector = new RelayHybridConnectionFactory();
 	// Server
-	const server = new KoaApp(); 
+	const server = new KoaApp(rootDirectory); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
 	// User
 	const user = new User();

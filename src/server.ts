@@ -40,7 +40,7 @@ export default class KoaApp {
 
   public selectedPort: number;
 
-  constructor(requestedPort?: number) {
+  constructor(rootDirectory: string) {
     this._instance = new Koa();
     this._router = new Router();
 
@@ -49,14 +49,18 @@ export default class KoaApp {
     this._instance.use(this._router.routes());
 
     // Set portfinder in case of user opening multiple instances of VSCode
-    setBasePort(requestedPort || this._serverPortOptions[0]);
+    setBasePort(this._serverPortOptions[0]);
     setHighestPort(this._serverPortOptions[1]);
 
     this._serverApp = http.createServer(this._instance.callback());
-    this._securedServerApp = https.createServer({
-      key: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl-certs', 'key.pem'), 'utf8').toString(),
-      cert: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl-certs', 'cert.pem'), 'utf8').toString(),
-    }, this._instance.callback());
+    try {
+      this._securedServerApp = https.createServer({
+        key: fs.readFileSync(path.join(rootDirectory, 'ssl-certs', 'key.pem'), 'utf8').toString(),
+        cert: fs.readFileSync(path.join(rootDirectory, 'ssl-certs', 'cert.pem'), 'utf8').toString(),
+      }, this._instance.callback());
+    } catch (err) {
+      vscode.window.showErrorMessage(`[volyfequickdev] ${err}. Cannot create the secured server. Possibly due to invalid / not-found key.pem and cert.pem certificate files`);
+    }
 
     getPort((err, port) => {
       if (err) {
@@ -81,10 +85,10 @@ export default class KoaApp {
     // Check if the secured server is listening and then close it
     this.closeSecuredServer();
     this.selectedPort = port || this.selectedPort;
-    this._serverApp.listen(this.selectedPort, async () => {
+    this._serverApp?.listen(this.selectedPort, async () => {
       await vscode.commands.executeCommand('setContext', 'volyfequickdev-settings.serverIsOn', true);
       vscode.window.showInformationMessage(`[volyfequickdev] Server is running on http://localhost:${port}`);
-    });
+    }) || vscode.window.showErrorMessage('[volyfequickdev] It seems that the local server was failed to be instantiated. Cannot start it as a result');
   }
 
   public closeServer(): boolean {
@@ -116,10 +120,10 @@ export default class KoaApp {
     // Check if the localhost server is listening and then close it
     this.closeServer();
     this.selectedPort = port || this.selectedPort;
-    this._securedServerApp.listen(this.selectedPort, async () => {
+    this._securedServerApp?.listen(this.selectedPort, async () => {
       await vscode.commands.executeCommand('setContext', 'volyfequickdev-settings.serverIsOn', true);
       vscode.window.showInformationMessage(`[volyfequickdev] Server is running on https://${ip.address()}:${port}`);
-    });
+    }) || vscode.window.showErrorMessage('[volyfequickdev] It seems that the secured server was failed to be instantiated. Cannot start it as a result');
   }
 
   public closeSecuredServer(): boolean {

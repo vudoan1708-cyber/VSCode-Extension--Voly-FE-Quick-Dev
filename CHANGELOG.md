@@ -69,6 +69,10 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Prioritise the results of the trace for import sources over ones of brute-force finding instantiables.
 - Change server provider from Express to Koa for its lightweight dependencies and bundleable-ness with ```webpack```.
 - Allow all methods (the preflight request - OPTIONS - was blocked due to the setup in the allowed methods option for Koa server).
-## [02/12/2023]
-- Handle the opening and closing of the secure network protocol (https) for mobile testing.
+## [02/12/2023] - New feature - Secure Network protocol
+- Handle the opening and closing of the new secure network protocol (https) for touchscreen device testing.
+- Update the exclusion list to inclusion list of repo names that are a target for the extension to run on.
+- Update the extension server to extend port option range and allow requests coming from voly.docker URL.
+## [03/12/2023] - New feature - Secure Network protocol
+- Cert keys are no longer part of the extension, instead the extension will look for them in target repos it can run on.
 <br />

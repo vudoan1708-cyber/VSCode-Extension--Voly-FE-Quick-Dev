@@ -44,3 +44,11 @@ No settings required
 
 ### 1.1.6
 - Allow all methods (the preflight request - OPTIONS - was blocked due to the setup in the allowed methods option for Koa server).
+
+### 1.2.0
+- Handle the opening and closing of the new secure network protocol (https) for touchscreen device testing.
+- Update the exclusion list to inclusion list of repo names that are a target for the extension to run on.
+- Update the extension server to extend port option range and allow requests coming from voly.docker URL.
+
+### 1.2.1
+- Cert keys are no longer part of the extension, instead the extension will look for them in target repos it can run on.

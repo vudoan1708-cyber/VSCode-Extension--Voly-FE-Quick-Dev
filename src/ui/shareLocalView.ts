@@ -1,55 +1,62 @@
 import * as vscode from 'vscode';
 
-export default class ShareLocalView implements vscode.TreeDataProvider<ConnectedIndividual> {
-  private _connectedSessionId: string;
-  private _onDidChangeTreeData: vscode.EventEmitter<ConnectedIndividual | undefined | void> = new vscode.EventEmitter<ConnectedIndividual | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<ConnectedIndividual | undefined | void> = this._onDidChangeTreeData.event;
+export default class ShareLocalView implements vscode.TreeDataProvider<ExposedAddress> {
+  private _address: string;
+  private _tunneledFromPort: string | number;
+  private _allAddresses: ExposedAddress[] = [];
+  private _onDidChangeTreeData: vscode.EventEmitter<ExposedAddress | undefined | void> = new vscode.EventEmitter<ExposedAddress | undefined | void>();
+	readonly onDidChangeTreeData: vscode.Event<ExposedAddress | undefined | void> = this._onDidChangeTreeData.event;
 
   constructor() {}
 
-  private _getConnectedIndividual(): ConnectedIndividual[] {
-    if (!this._connectedSessionId) {
+  private _getExposedAddresses(): ExposedAddress[] {
+    if (!this._address) {
       return [];
     }
-    return [
-      new ConnectedIndividual(
-        this._connectedSessionId,
-        `Connection session ID: ${this._connectedSessionId}`,
-        vscode.TreeItemCollapsibleState.None,
-      ),
-    ];
+    this._allAddresses.push(new ExposedAddress(
+      this._address,
+      `Exposed URL: ${this._address} tunneled from ${this._tunneledFromPort}`,
+      vscode.TreeItemCollapsibleState.None,
+    ));
+    return this._allAddresses;
   }
 
-  public assignSessionId(sessionId: string) {
-    this._connectedSessionId = sessionId;
+  public getAddress(addr: string) {
+    return this._allAddresses.find((a) => a.address === addr);
   }
 
-  public removeSessionId() {
-    this._connectedSessionId = '';
+  public assignAddress(addr: string, port: string | number) {
+    this._address = addr;
+    this._tunneledFromPort = port;
+  }
+
+  public removeAddress(addr: string) {
+    this._allAddresses = this._allAddresses.filter((a) => a.address !== addr);
+    return addr;
   }
 
   refresh(): void {
 		this._onDidChangeTreeData.fire();
 	}
 
-  getTreeItem(element: ConnectedIndividual): vscode.TreeItem {
+  getTreeItem(element: ExposedAddress): vscode.TreeItem {
 		return element;
 	}
 
-  getChildren(): Thenable<ConnectedIndividual[]> {
-    return Promise.resolve(this._getConnectedIndividual());
+  getChildren(): Thenable<ExposedAddress[]> {
+    return Promise.resolve(this._getExposedAddresses());
   }
 }
 
-export class ConnectedIndividual extends vscode.TreeItem {
+export class ExposedAddress extends vscode.TreeItem {
   constructor(
-		public readonly sessionId: string,
+		public readonly address: string,
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
 	) {
     super(label, collapsibleState);
 
-    this.tooltip = 'You have been connected with another individual with this session ID';
+    this.tooltip = 'This address is currently shared with the world';
   }
 
 	contextValue = 'shareableLocal';

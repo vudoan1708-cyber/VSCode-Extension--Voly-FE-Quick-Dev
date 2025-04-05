@@ -38,15 +38,6 @@
 				}
 			},
 			{
-				"command": "volyfequickdev.share-local.connect",
-				"category": "Voly FE Quick Dev",
-				"title": "Connect",
-				"icon": {
-					"light": "icon/light/add.svg",
-					"dark": "icon/dark/add.svg"
-				}
-			},
-			{
 				"command": "volyfequickdev.share-local.share",
 				"category": "Voly FE Quick Dev",
 				"title": "Share",
@@ -56,14 +47,18 @@
 				}
 			},
 			{
-				"command": "volyfequickdev.share-local.set-session-id",
+				"command": "volyfequickdev.share-local.remove-entry",
 				"category": "Voly FE Quick Dev",
-				"title": "Add Session Id"
+				"title": "Remove"
 			},
 			{
 				"command": "volyfequickdev.share-local.refresh-view",
 				"category": "Voly FE Quick Dev",
-				"title": "Refresh"
+				"title": "Refresh",
+				"icon": {
+					"light": "icon/light/refresh.svg",
+					"dark": "icon/dark/refresh.svg"
+				}
 			},
 			{
 				"command": "volyfequickdev.settings.close-server",
@@ -167,13 +162,13 @@
 					"group": "navigation"
 				},
 				{
-					"command": "volyfequickdev.share-local.connect",
+					"command": "volyfequickdev.share-local.share",
 					"when": "view == volyfequickdev-sharelocal",
 					"group": "navigation"
 				},
 				{
-					"command": "volyfequickdev.share-local.share",
-					"when": "view == volyfequickdev-sharelocal && volyfequickdev-sharelocal.senderIsFrontend",
+					"command": "volyfequickdev.share-local.refresh-view",
+					"when": "view == volyfequickdev-sharelocal",
 					"group": "navigation"
 				}
 			],
@@ -181,6 +176,10 @@
 				{
 					"command": "volyfequickdev.folder-explorer.remove-entry",
 					"when": "view == volyfequickdev-devbuilds-explorer && viewItem == devBuildsFolder"
+				},
+				{
+					"command": "volyfequickdev.share-local.remove-entry",
+					"when": "view == volyfequickdev-sharelocal && viewItem == shareableLocal"
 				},
 				{
 					"command": "volyfequickdev.settings.close-server",
@@ -246,16 +245,19 @@
 		"@typescript-eslint/eslint-plugin": "^5.21.0",
 		"@typescript-eslint/parser": "^5.21.0",
 		"@vscode/test-electron": "^2.1.3",
+		"ajv": "^7.2.4",
 		"dotenv-webpack": "^8.0.1",
 		"eslint": "^8.14.0",
 		"glob": "^8.0.1",
 		"mocha": "^9.2.2",
+		"node-loader": "^2.1.0",
 		"ts-loader": "^9.2.8",
 		"typescript": "^4.6.4",
 		"webpack": "^5.88.2",
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
+		"@ngrok/ngrok": "^1.4.1",
 		"dotenv": "^16.3.1",
 		"hyco-ws": "^1.0.5",
 		"ip": "^1.1.8",

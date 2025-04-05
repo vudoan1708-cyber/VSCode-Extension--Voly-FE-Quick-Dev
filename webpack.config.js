@@ -35,7 +35,7 @@ const extensionConfig = {
   ],
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js', '.node']
   },
   module: {
     rules: [
@@ -47,6 +47,22 @@ const extensionConfig = {
             loader: 'ts-loader'
           }
         ]
+      },
+      {
+        test: /\.node$/,
+        loader: 'node-loader',
+        options: {
+          name(resourcePath, resourceQuery) {
+            // `resourcePath` - `/absolute/path/to/file.js`
+            // `resourceQuery` - `?foo=bar`
+
+            if (process.env.NODE_ENV === "development") {
+              return "[path][name].[ext]";
+            }
+
+            return "[contenthash].[ext]";
+          },
+        },
       }
     ]
   },

@@ -7,7 +7,7 @@ export default class NgrokFactory {
 
   async forwardWithAddr(addr: number | string) {
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const listener = await ngrok.forward({ authtoken_from_env: true, addr });
+    const listener = await ngrok.forward({ authtoken: process.env.NGROK_AUTHTOKEN, addr });
     // add to the factory
     this._listeners.push(listener);
     // return ngrok url

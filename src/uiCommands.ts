@@ -80,6 +80,13 @@ export default class UICommands {
   }
 
   /* Shareable Local */
+  public static toCopyAddressURL(
+    treeView: vscode.TreeView<ExposedAddress>,
+  ): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.share-local.copy-entry', async (node: ExposedAddress) => {
+      await vscode.env.clipboard.writeText(node.address);
+    });
+  }
   public static toRefreshAddressView(sharedLocalViewProvider: ShareLocalView): vscode.Disposable {
 		return vscode.commands.registerCommand('volyfequickdev.share-local.refresh-view', () => {
       sharedLocalViewProvider.refresh();

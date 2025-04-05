@@ -30,7 +30,7 @@ export default class ShareLocalView implements vscode.TreeDataProvider<ExposedAd
     this._address = addr;
     this._tunneledFromPort = port;
     // Append to the factory array
-    this._allAddresses.push({ addr: this._address, port: this._address });
+    this._allAddresses.push({ addr: this._address, port: this._tunneledFromPort });
   }
 
   public removeAddress(addr: string) {

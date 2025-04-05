@@ -4,6 +4,9 @@ import RelaySender from './sender';
 // Type
 import { SendPayload } from '../types';
 
+/**
+ * @deprecated Azure relay is longer in use, please use Ngrok instead
+*/
 export default class RelayHybridConnectionFactory {
   private _listener: RelayListener;
   private _sender: RelaySender;

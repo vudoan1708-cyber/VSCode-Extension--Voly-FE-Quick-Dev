@@ -52,3 +52,9 @@ No settings required
 
 ### 1.2.1
 - Cert keys are no longer part of the extension, instead the extension will look for them in target repos it can run on.
+
+### 1.2.2
+- Allow docker environment in our server whitelist.
+
+### 1.3.0
+- Use Ngrok to globalise a local dev environment to other devs (mainly for BE team) for a quick collaborative testing environment.

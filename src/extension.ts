@@ -77,17 +77,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Shareable Local
 	// const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, sharedLocalViewProvider, hybridConnector);
 	// const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
-	const disposable8 = UICommands.toRefreshAddressView(sharedLocalViewProvider);
-	const disposable9 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, ngrokInstance);
-	const [ disposable9_1, disposable9_2 ] = UICommands.toRemoveAddressEntries(sharedLocalViewProvider, sharedLocalTreeView, ngrokInstance);
+	const disposable8 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, ngrokInstance);
+	const disposable9 = UICommands.toRefreshAddressView(sharedLocalViewProvider);
+	const disposable10 = UICommands.toCopyAddressURL(sharedLocalTreeView);
+	const [ disposable11, disposable12 ] = UICommands.toRemoveAddressEntries(sharedLocalViewProvider, sharedLocalTreeView, ngrokInstance);
 	// Settings
-	const disposable10 = UICommands.toCloseExtensionServer(server);
-	const disposable11 = UICommands.toRestartExtensionServer(server);
-	const disposable12 = UICommands.toSwitchToHttp(server);
-	const disposable13 = UICommands.toSwitchToHttps(server);
-	const disposable14 = UICommands.toRefreshSettingView(settingViewProvider);
+	const disposable13 = UICommands.toCloseExtensionServer(server);
+	const disposable14 = UICommands.toRestartExtensionServer(server);
+	const disposable15 = UICommands.toSwitchToHttp(server);
+	const disposable16 = UICommands.toSwitchToHttps(server);
+	const disposable17 = UICommands.toRefreshSettingView(settingViewProvider);
 
-	const disposable15 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable18 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -106,8 +107,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable7,
 		disposable8,
 		disposable9,
-		disposable9_1,
-		disposable9_2,
 		// disposable9,
 		disposable10,
 		disposable11,
@@ -115,6 +114,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable13,
 		disposable14,
 		disposable15,
+		disposable16,
+		disposable17,
+		disposable18,
 	);
 }
 

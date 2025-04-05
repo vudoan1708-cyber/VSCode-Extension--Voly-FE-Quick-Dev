@@ -75,4 +75,10 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Update the extension server to extend port option range and allow requests coming from voly.docker URL.
 ## [03/12/2023]
 - Cert keys are no longer part of the extension, instead the extension will look for them in target repos it can run on.
+## [15/03/2024]
+- Allow docker environment in our server whitelist.
+## [04/04/2025] - New feature - Shareable Local Dev (Remake)
+- Use Ngrok to globalise a local dev environment to other devs (mainly for BE team) for a quick collaborative testing environment (Azure relay is deprecated as a result).
+## [05/04/2025]
+- Removing URL for disconnecting Ngrok globalisation of a local environment and Copying URL for sharing local dev from tree item is .
 <br />

@@ -11,7 +11,8 @@ import path from 'path';
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
 import User from './user';
-import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
+import NgrokFactory from './ngrok/ngrokFactory';
+// import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';
 
@@ -40,7 +41,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		return;
 	}
 	// Azure relay hybrid connection
-	const hybridConnector = new RelayHybridConnectionFactory();
+	// const hybridConnector = new RelayHybridConnectionFactory();
+	// Ngrok to expose local development to the world (for quick collaborative testing)
+	const ngrokInstance = new NgrokFactory();
 	// Server
 	const server = new KoaApp(rootDirectory); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
@@ -48,15 +51,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	const user = new User();
 	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
-	const connectionViewProvider = new ShareLocalView();
+	const sharedLocalViewProvider = new ShareLocalView();
 	const settingViewProvider = new SettingView(context, server);
 
 	const folderTreeView = vscode.window.createTreeView('volyfequickdev-devbuilds-explorer', {
 		treeDataProvider: folderViewProvider,
 		canSelectMany: true,
 	});
-	const connectionTreeView = vscode.window.createTreeView('volyfequickdev-sharelocal', {
-		treeDataProvider: connectionViewProvider,
+	const sharedLocalTreeView = vscode.window.createTreeView('volyfequickdev-sharelocal', {
+		treeDataProvider: sharedLocalViewProvider,
 	});
 	const settingTreeView = vscode.window.createTreeView('volyfequickdev-settings', {
 		treeDataProvider: settingViewProvider,
@@ -66,27 +69,29 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Disposables
 	const disposable1 = UICommands.toActivateExtension(context);
 	const disposable2 = UICommands.toDeactivateExtension(context);
-	const disposable3 = UICommands.toRefreshEntry(folderViewProvider);
-	// eslint-disable-next-line @typescript-eslint/naming-convention
+	const disposable3 = UICommands.toRefreshFileEntry(folderViewProvider);
+	/* eslint-disable @typescript-eslint/naming-convention */
 	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
-	const [ disposable6, disposable7 ] = UICommands.toRemoveEntries(pathToDevBuildsFolder, folderTreeView);
+	const [ disposable6, disposable7 ] = UICommands.toRemoveFileEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
-	const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, connectionViewProvider, hybridConnector);
-	const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
-	const disposable10 = UICommands.toRefreshSharedConnection(connectionViewProvider);
+	// const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, sharedLocalViewProvider, hybridConnector);
+	// const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
+	const disposable8 = UICommands.toRefreshAddressView(sharedLocalViewProvider);
+	const disposable9 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, ngrokInstance);
+	const [ disposable9_1, disposable9_2 ] = UICommands.toRemoveAddressEntries(sharedLocalViewProvider, sharedLocalTreeView, ngrokInstance);
 	// Settings
-	const disposable11 = UICommands.toCloseExtensionServer(server);
-	const disposable12 = UICommands.toRestartExtensionServer(server);
-	const disposable13 = UICommands.toSwitchToHttp(server);
-	const disposable14 = UICommands.toSwitchToHttps(server);
-	const disposable15 = UICommands.toRefreshSettingView(settingViewProvider);
+	const disposable10 = UICommands.toCloseExtensionServer(server);
+	const disposable11 = UICommands.toRestartExtensionServer(server);
+	const disposable12 = UICommands.toSwitchToHttp(server);
+	const disposable13 = UICommands.toSwitchToHttps(server);
+	const disposable14 = UICommands.toRefreshSettingView(settingViewProvider);
 
-	const disposable16 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable15 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
-	await UICommands.toDecideViewToDisplayBasedOnUserRole(user.role);
+	// await UICommands.toDecideViewToDisplayBasedOnUserRole(user.role);
 
 	vscode.window.showInformationMessage('[volyfequickdev] The extension is now running...');
 
@@ -101,13 +106,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable7,
 		disposable8,
 		disposable9,
+		disposable9_1,
+		disposable9_2,
+		// disposable9,
 		disposable10,
 		disposable11,
 		disposable12,
 		disposable13,
 		disposable14,
 		disposable15,
-		disposable16,
 	);
 }
 

@@ -27,7 +27,7 @@ export default class KoaApp {
   private _serverApp: http.Server<any>;
   private _securedServerApp: https.Server<any>;
 	private _serverPortOptions: number[] = [ 8090, 9999 ];
-  private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost', 'http://voly.docker' ];
+  private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost', 'http://voly.docker', 'http://voly.local' ];
   private _corsOptions: cors.Options = {
     origin: (request: Request) => {
       if (this._whitelist.indexOf(request.headers.origin || '') > -1 || !request.headers.origin) {

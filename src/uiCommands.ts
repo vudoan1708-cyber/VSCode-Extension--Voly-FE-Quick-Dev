@@ -4,17 +4,18 @@ import fs from 'fs';
 import path from 'path';
 
 import FolderView, { BuiltFile } from './ui/folderView';
-import ShareLocalView from './ui/shareLocalView';
+import ShareLocalView, { ExposedAddress } from './ui/shareLocalView';
 
-import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
+import NgrokFactory from './ngrok/ngrokFactory';
+// import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Classes
-import User from './user';
+// import User from './user';
 import KoaApp from './server';
 import SettingView from './ui/settings';
 
 export default class UICommands {
-  public static toRefreshEntry(folderViewProvider: FolderView): vscode.Disposable {
+  public static toRefreshFileEntry(folderViewProvider: FolderView): vscode.Disposable {
 		return vscode.commands.registerCommand('volyfequickdev.folder-explorer.refresh-entry', () => {
       folderViewProvider.refresh();
     });
@@ -51,7 +52,7 @@ export default class UICommands {
     });
   }
 
-  public static toRemoveEntries(
+  public static toRemoveFileEntries(
     pathToDevBuildsFolder: string,
     treeView: vscode.TreeView<BuiltFile>
   ): vscode.Disposable[] {
@@ -79,68 +80,84 @@ export default class UICommands {
   }
 
   /* Shareable Local */
-  public static async toDecideViewToDisplayBasedOnUserRole(userRole: User['role']) {
-    await vscode.commands.executeCommand('setContext', 'volyfequickdev-sharelocal.senderIsFrontend', userRole === 'frontend');
+  public static toRefreshAddressView(sharedLocalViewProvider: ShareLocalView): vscode.Disposable {
+		return vscode.commands.registerCommand('volyfequickdev.share-local.refresh-view', () => {
+      sharedLocalViewProvider.refresh();
+    });
+  }
+  public static toRemoveAddressEntries(
+    sharedLocalViewProvider: ShareLocalView,
+    treeView: vscode.TreeView<ExposedAddress>,
+    ngrok: NgrokFactory,
+  ): vscode.Disposable[] {
+    let multiSelectedTreeItems: Readonly<ExposedAddress[]>	= [];
+    const disposable = treeView.onDidChangeSelection((e) => {
+      multiSelectedTreeItems = e.selection;
+    });
+    const disposable1 = vscode.commands.registerCommand('volyfequickdev.share-local.remove-entry', async (node: ExposedAddress) => {
+      if (multiSelectedTreeItems.length > 1) {
+        // disconnect selected ngrok url connections
+        for (const item of multiSelectedTreeItems) {
+          await ngrok.disconnect(item.address);
+          sharedLocalViewProvider.removeAddress(item.address);
+        }
+        vscode.window.showInformationMessage(`[volyfequickdev] ${multiSelectedTreeItems.length} items have been removed`);
+      } else {
+        // disconnect ngrok url connection
+        await ngrok.disconnect(node.address);
+        // remove tree item
+        sharedLocalViewProvider.removeAddress(node.address);
+        vscode.window.showInformationMessage(`[volyfequickdev] ${node.address} has been removed`);
+      }
+      vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
+    });
+
+    return [ disposable, disposable1 ];
   }
 
-  public static toConnectWithAnotherLocal(
-    rootDirectoryFromTheOtherSide: string,
-    userRole: User['role'],
-    connectionViewProvider: ShareLocalView,
-    hybridConnector: RelayHybridConnectionFactory
+  public static toExposeLocalToTheWorld(
+    sharedLocalViewProvider: ShareLocalView,
+    ngrok: NgrokFactory,
   ): vscode.Disposable {
-    return vscode.commands.registerCommand('volyfequickdev.share-local.connect', async () => {
-      const placeHolder = {
-        frontend: 'Type in the connection ID that is shared from a BE developer',
-        backend: 'Type in an ID to connect with a FE developer\'s local',
-      };
+    return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
+      // Type in the port number / host and port
       const inputted: string | undefined = await vscode.window.showInputBox({
-        placeHolder: placeHolder[userRole],
+        placeHolder: 'Enter the port number to forward on localhost (4222), or specify the host and port via a string (localhost:4222)',
       });
-
+  
       if (!inputted) {
         return;
       }
-      if (inputted.length < 6) {
-        vscode.window.showWarningMessage('[volyfequickdev] Connection ID needs to be more than 5 characters');
+      // If input doesn't include localhost and is not an integer, then return
+      if (inputted.indexOf('localhost') < 0 && !Number.isInteger(Number(inputted))) {
         return;
       }
-      
-      // If there is already an established connection and we desire to have a different connection
-      if (hybridConnector.hasEstablishedConnection()) {
-        connectionViewProvider.removeSessionId();
-        hybridConnector.resetConnection();
-        vscode.window.showInformationMessage('[volyfequickdev] Previous connection has been removed');
-      }
-      connectionViewProvider.assignSessionId(inputted);
-      hybridConnector.createInstance(userRole, inputted, rootDirectoryFromTheOtherSide);
-      vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
-    });
-  }
-
-  public static toShareLocal(
-    pathToDevBuildsFolder: string,
-    hybridConnector: RelayHybridConnectionFactory
-  ): vscode.Disposable {
-    return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
-      const bufferedFiles: { fileName: string, bits: string }[] = [];
-      fs.readdirSync(pathToDevBuildsFolder).forEach((fileName) => {
-        const base64FileContent = fs.readFileSync(path.join(pathToDevBuildsFolder, fileName), { encoding: 'base64' });
-        bufferedFiles.push({ fileName, bits: base64FileContent });
-      });
   
-      const response = hybridConnector.send({ reason: 'fileSend', data: bufferedFiles });
-      if (response?.status) {
-        vscode.window.showWarningMessage(`[volyfequickdev] ${response.status}`);
-      }
-    });
-  }
-
-  public static toRefreshSharedConnection(shareLocalViewProvider: ShareLocalView): vscode.Disposable {
-    return vscode.commands.registerCommand('volyfequickdev.share-local.refresh-view', () => {
-      shareLocalViewProvider.refresh();
-    });
-  }
+      // vscode.window.showInformationMessage('[volyfequickdev] Previous connection has been removed');
+      const response = await ngrok.forwardWithAddr(inputted);
+      sharedLocalViewProvider.assignAddress(response as string, inputted);
+      vscode.window.showInformationMessage(`[volyfequickdev]  Ingress established at: ${response}`);
+      vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
+      });
+  };
+  // TODO: If a dev decides to expose a different port to one that serves component files. Need to copy files over that port too
+  // public static toShareLocal(
+  //   pathToDevBuildsFolder: string,
+  //   ngrok: NgrokFactory,
+  // ): vscode.Disposable {
+  //   return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
+  //     const bufferedFiles: { fileName: string, bits: string }[] = [];
+  //     fs.readdirSync(pathToDevBuildsFolder).forEach((fileName) => {
+  //       const base64FileContent = fs.readFileSync(path.join(pathToDevBuildsFolder, fileName), { encoding: 'base64' });
+  //       bufferedFiles.push({ fileName, bits: base64FileContent });
+  //     });
+  
+  //     const response = hybridConnector.send({ reason: 'fileSend', data: bufferedFiles });
+  //     if (response?.status) {
+  //       vscode.window.showWarningMessage(`[volyfequickdev] ${response.status}`);
+  //     }
+  //   });
+  // }
 
   /* Settings */
   public static toCloseExtensionServer(server: KoaApp): vscode.Disposable {

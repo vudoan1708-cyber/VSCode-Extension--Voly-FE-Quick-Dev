@@ -73,6 +73,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Handle the opening and closing of the new secure network protocol (https) for touchscreen device testing.
 - Update the exclusion list to inclusion list of repo names that are a target for the extension to run on.
 - Update the extension server to extend port option range and allow requests coming from voly.docker URL.
-## [03/12/2023] - New feature - Secure Network protocol
+## [03/12/2023]
 - Cert keys are no longer part of the extension, instead the extension will look for them in target repos it can run on.
 <br />

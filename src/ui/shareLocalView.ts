@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 
+type AllAddressesType = { addr: string, port: string | number };
+
 export default class ShareLocalView implements vscode.TreeDataProvider<ExposedAddress> {
   private _address: string;
   private _tunneledFromPort: string | number;
-  private _allAddresses: ExposedAddress[] = [];
+  private _allAddresses: AllAddressesType[] = [];
   private _onDidChangeTreeData: vscode.EventEmitter<ExposedAddress | undefined | void> = new vscode.EventEmitter<ExposedAddress | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<ExposedAddress | undefined | void> = this._onDidChangeTreeData.event;
 
@@ -13,25 +15,26 @@ export default class ShareLocalView implements vscode.TreeDataProvider<ExposedAd
     if (!this._address) {
       return [];
     }
-    this._allAddresses.push(new ExposedAddress(
-      this._address,
-      `Exposed URL: ${this._address} tunneled from ${this._tunneledFromPort}`,
+    return this._allAddresses.map((item) => new ExposedAddress(
+      item.addr,
+      `Exposed URL: ${item.addr} tunneled from ${item.port}`,
       vscode.TreeItemCollapsibleState.None,
     ));
-    return this._allAddresses;
   }
 
   public getAddress(addr: string) {
-    return this._allAddresses.find((a) => a.address === addr);
+    return this._allAddresses.find((item) => item.addr === addr);
   }
 
   public assignAddress(addr: string, port: string | number) {
     this._address = addr;
     this._tunneledFromPort = port;
+    // Append to the factory array
+    this._allAddresses.push({ addr: this._address, port: this._address });
   }
 
   public removeAddress(addr: string) {
-    this._allAddresses = this._allAddresses.filter((a) => a.address !== addr);
+    this._allAddresses = this._allAddresses.filter((item) => item.addr !== addr);
     return addr;
   }
 

@@ -6,7 +6,7 @@ import path from 'path';
 import FolderView, { BuiltFile } from './ui/folderView';
 import ShareLocalView, { ExposedAddress } from './ui/shareLocalView';
 
-import NgrokFactory from './ngrok/ngrokFactory';
+import LocalTunnelFactory from './localtunnel/localtunnelFactory';
 // import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Classes
@@ -95,7 +95,7 @@ export default class UICommands {
   public static toRemoveAddressEntries(
     sharedLocalViewProvider: ShareLocalView,
     treeView: vscode.TreeView<ExposedAddress>,
-    ngrok: NgrokFactory,
+    lt: LocalTunnelFactory,
   ): vscode.Disposable[] {
     let multiSelectedTreeItems: Readonly<ExposedAddress[]>	= [];
     const disposable = treeView.onDidChangeSelection((e) => {
@@ -103,15 +103,15 @@ export default class UICommands {
     });
     const disposable1 = vscode.commands.registerCommand('volyfequickdev.share-local.remove-entry', async (node: ExposedAddress) => {
       if (multiSelectedTreeItems.length > 1) {
-        // disconnect selected ngrok url connections
+        // disconnect selected lt url connections
         for (const item of multiSelectedTreeItems) {
-          await ngrok.disconnect(item.address);
+          lt.disconnect(item.address);
           sharedLocalViewProvider.removeAddress(item.address);
         }
         vscode.window.showInformationMessage(`[volyfequickdev] ${multiSelectedTreeItems.length} items have been removed`);
       } else {
-        // disconnect ngrok url connection
-        await ngrok.disconnect(node.address);
+        // disconnect lt url connection
+        lt.disconnect(node.address);
         // remove tree item
         sharedLocalViewProvider.removeAddress(node.address);
         vscode.window.showInformationMessage(`[volyfequickdev] ${node.address} has been removed`);
@@ -124,33 +124,34 @@ export default class UICommands {
 
   public static toExposeLocalToTheWorld(
     sharedLocalViewProvider: ShareLocalView,
-    ngrok: NgrokFactory,
+    lt: LocalTunnelFactory,
   ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
       // Type in the port number / host and port
       const inputted: string | undefined = await vscode.window.showInputBox({
-        placeHolder: 'Enter the port number to forward on localhost (4222), or specify the host and port via a string (localhost:4222)',
+        placeHolder: 'Enter the port number to forward on localhost (4222)',
       });
   
-      if (!inputted) {
-        return;
-      }
       // If input doesn't include localhost and is not an integer, then return
-      if (inputted.indexOf('localhost') < 0 && !Number.isInteger(Number(inputted))) {
+      if (!inputted || !Number.isInteger(Number(inputted))) {
+        vscode.window.showErrorMessage('[volyfequickdev] Input is not a valid port number (something like 8090)');
         return;
       }
-  
-      // vscode.window.showInformationMessage('[volyfequickdev] Previous connection has been removed');
-      const response = await ngrok.forwardWithAddr(inputted);
-      sharedLocalViewProvider.assignAddress(response as string, inputted);
-      vscode.window.showInformationMessage(`[volyfequickdev]  Ingress established at: ${response}`);
-      vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
+
+      try {
+        const response = await lt.forwardWithPort(Number(inputted));
+        sharedLocalViewProvider.assignAddress(response as string, inputted);
+        vscode.window.showInformationMessage(`[volyfequickdev]  Ingress established at: ${response}`);
+        vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
+      } catch (err) {
+        vscode.window.showErrorMessage(`[localtunnel] ${err}`);
+      }
       });
   };
   // TODO: If a dev decides to expose a different port to one that serves component files. Need to copy files over that port too
   // public static toShareLocal(
   //   pathToDevBuildsFolder: string,
-  //   ngrok: NgrokFactory,
+  //   lt: LocalTunnelFactory,
   // ): vscode.Disposable {
   //   return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
   //     const bufferedFiles: { fileName: string, bits: string }[] = [];

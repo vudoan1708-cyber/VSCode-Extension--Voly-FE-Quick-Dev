@@ -63,4 +63,4 @@ No settings required
 - Implement tree item removal and URL copying from the UI.
 
 ### 1.3.3
-- Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel as an alternative.
+- Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel and Serveo SSH as an alternative.

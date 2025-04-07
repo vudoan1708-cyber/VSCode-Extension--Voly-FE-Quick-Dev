@@ -81,4 +81,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Use Ngrok to globalise a local dev environment to other devs (mainly for BE team) for a quick collaborative testing environment (Azure relay is deprecated as a result).
 ## [05/04/2025]
 - Removing URL for disconnecting Ngrok globalisation of a local environment and Copying URL for sharing local dev from tree item is successful.
+## [06/04/2025]
+- Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel as an alternative.
 <br />

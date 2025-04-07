@@ -58,3 +58,9 @@ No settings required
 
 ### 1.3.0
 - Use Ngrok to globalise a local dev environment to other devs (mainly for BE team) for a quick collaborative testing environment.
+
+### 1.3.2
+- Implement tree item removal and URL copying from the UI.
+
+### 1.3.3
+- Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel as an alternative.

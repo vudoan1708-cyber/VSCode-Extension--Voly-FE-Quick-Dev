@@ -11,7 +11,7 @@ import path from 'path';
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
 import User from './user';
-import NgrokFactory from './ngrok/ngrokFactory';
+import TunnelFactory from './tunnel/tunnelFactory';
 // import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';
@@ -42,8 +42,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 	// Azure relay hybrid connection
 	// const hybridConnector = new RelayHybridConnectionFactory();
-	// Ngrok to expose local development to the world (for quick collaborative testing)
-	const ngrokInstance = new NgrokFactory();
+	// LocalTunnel to expose local development to the world (for quick collaborative testing)
+	const tunnelFactory = new TunnelFactory();
 	// Server
 	const server = new KoaApp(rootDirectory); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
@@ -77,10 +77,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Shareable Local
 	// const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, sharedLocalViewProvider, hybridConnector);
 	// const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
-	const disposable8 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, ngrokInstance);
+	const disposable8 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, tunnelFactory);
 	const disposable9 = UICommands.toRefreshAddressView(sharedLocalViewProvider);
 	const disposable10 = UICommands.toCopyAddressURL(sharedLocalTreeView);
-	const [ disposable11, disposable12 ] = UICommands.toRemoveAddressEntries(sharedLocalViewProvider, sharedLocalTreeView, ngrokInstance);
+	const [ disposable11, disposable12 ] = UICommands.toRemoveAddressEntries(sharedLocalViewProvider, sharedLocalTreeView, tunnelFactory);
 	// Settings
 	const disposable13 = UICommands.toCloseExtensionServer(server);
 	const disposable14 = UICommands.toRestartExtensionServer(server);
@@ -107,7 +107,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable7,
 		disposable8,
 		disposable9,
-		// disposable9,
 		disposable10,
 		disposable11,
 		disposable12,

@@ -11,7 +11,7 @@ import path from 'path';
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
 import User from './user';
-import LocalTunnelFactory from './localtunnel/localtunnelFactory';
+import TunnelFactory from './tunnel/tunnelFactory';
 // import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';
@@ -43,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Azure relay hybrid connection
 	// const hybridConnector = new RelayHybridConnectionFactory();
 	// LocalTunnel to expose local development to the world (for quick collaborative testing)
-	const tunnelFactory = new LocalTunnelFactory();
+	const tunnelFactory = new TunnelFactory();
 	// Server
 	const server = new KoaApp(rootDirectory); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());

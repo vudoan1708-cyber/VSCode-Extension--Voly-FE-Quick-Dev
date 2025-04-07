@@ -6,7 +6,7 @@ import path from 'path';
 import FolderView, { BuiltFile } from './ui/folderView';
 import ShareLocalView, { ExposedAddress } from './ui/shareLocalView';
 
-import LocalTunnelFactory from './localtunnel/localtunnelFactory';
+import TunnelFactory from './tunnel/tunnelFactory';
 // import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 // Classes
@@ -95,7 +95,7 @@ export default class UICommands {
   public static toRemoveAddressEntries(
     sharedLocalViewProvider: ShareLocalView,
     treeView: vscode.TreeView<ExposedAddress>,
-    lt: LocalTunnelFactory,
+    tunn: TunnelFactory,
   ): vscode.Disposable[] {
     let multiSelectedTreeItems: Readonly<ExposedAddress[]>	= [];
     const disposable = treeView.onDidChangeSelection((e) => {
@@ -103,15 +103,15 @@ export default class UICommands {
     });
     const disposable1 = vscode.commands.registerCommand('volyfequickdev.share-local.remove-entry', async (node: ExposedAddress) => {
       if (multiSelectedTreeItems.length > 1) {
-        // disconnect selected lt url connections
+        // disconnect selected tunn url connections
         for (const item of multiSelectedTreeItems) {
-          lt.disconnect(item.address);
+          tunn.disconnect(item.address);
           sharedLocalViewProvider.removeAddress(item.address);
         }
         vscode.window.showInformationMessage(`[volyfequickdev] ${multiSelectedTreeItems.length} items have been removed`);
       } else {
-        // disconnect lt url connection
-        lt.disconnect(node.address);
+        // disconnect tunn url connection
+        tunn.disconnect(node.address);
         // remove tree item
         sharedLocalViewProvider.removeAddress(node.address);
         vscode.window.showInformationMessage(`[volyfequickdev] ${node.address} has been removed`);
@@ -124,22 +124,41 @@ export default class UICommands {
 
   public static toExposeLocalToTheWorld(
     sharedLocalViewProvider: ShareLocalView,
-    lt: LocalTunnelFactory,
+    tunn: TunnelFactory,
   ): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
       // Type in the port number / host and port
       const inputted: string | undefined = await vscode.window.showInputBox({
-        placeHolder: 'Enter the port number to forward on localhost (4222)',
+        placeHolder: 'Enter the method follow by a colon and a port number to forward on localhost',
+        prompt: 'localtunnel:8090 or serveo:4222',
+        value: 'serveo:8090',
       });
-  
-      // If input doesn't include localhost and is not an integer, then return
-      if (!inputted || !Number.isInteger(Number(inputted))) {
-        vscode.window.showErrorMessage('[volyfequickdev] Input is not a valid port number (something like 8090)');
+
+      if (!inputted) {
+        vscode.window.showErrorMessage('[volyfequickdev] Input is not a valid value');
+        return;
+      }
+
+      // If input the colon separator, then return
+      if (inputted.indexOf(':') < 0) {
+        vscode.window.showErrorMessage('[volyfequickdev] Input is not accepted (something like localtunnel:8090 or serveo:8090)');
+        return;
+      }
+
+      let [ method, port ] = inputted.split(':');
+      // If input doesn't include a method (localtunnel or serveo), then return
+      if (method !== 'localtunnel' && method !== 'serveo') {
+        vscode.window.showErrorMessage('[volyfequickdev] Method is not found. Please only type in either localtunnel or serveo');
+        return;
+      }
+      // If port is not an integer, then return
+      if (!Number.isInteger(Number(port))) {
+        vscode.window.showErrorMessage('[volyfequickdev] port is not a number');
         return;
       }
 
       try {
-        const response = await lt.forwardWithPort(Number(inputted));
+        const response = await tunn.forward({ port: Number(port), method });
         sharedLocalViewProvider.assignAddress(response as string, inputted);
         vscode.window.showInformationMessage(`[volyfequickdev]  Ingress established at: ${response}`);
         vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
@@ -151,7 +170,7 @@ export default class UICommands {
   // TODO: If a dev decides to expose a different port to one that serves component files. Need to copy files over that port too
   // public static toShareLocal(
   //   pathToDevBuildsFolder: string,
-  //   lt: LocalTunnelFactory,
+  //   tunn: TunnelFactory,
   // ): vscode.Disposable {
   //   return vscode.commands.registerCommand('volyfequickdev.share-local.share', async () => {
   //     const bufferedFiles: { fileName: string, bits: string }[] = [];

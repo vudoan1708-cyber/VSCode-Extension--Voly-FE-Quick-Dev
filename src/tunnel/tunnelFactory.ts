@@ -31,7 +31,8 @@ export default class TunnelFactory {
         // return tunnel url
         return url;
       } catch (e) {
-        console.error(`Failed to initiate Serveo Tunnel. Fallback to LocalTunnel...`);
+        console.error(`Failed to initiate Serveo Tunnel. ${e}`);
+        console.info('Fallback to LocalTunnel...');
         return this.forward({ port, method: 'localtunnel' });
       }
     }

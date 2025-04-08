@@ -39,23 +39,37 @@ export default class ServeoTunnel {
   };
 
   public async startSSHReverseTunnel(port: number): Promise<string> {
-    return new Promise(async (resolve, reject) => {
+    // Check if SSH is installed before proceeding
+    await this._checkSSHInstallation();
+
+    return new Promise((resolve, reject) => {
       try {
-        // Check if SSH is installed before proceeding
-        await this._checkSSHInstallation();
     
         const command = 'ssh';
-        const args: string[] = ['-R', `80:localhost:${port}`, 'serveo.net'];
+        const args: string[] = [ '-o', 'LogLevel=ERROR', '-R', `80:localhost:${port}`, 'serveo.net' ];
 
         this._tunnelProcess = spawn(command, args);
+
+        /* This is so that everytime Node emits a 'data' event,
+          chunks of response will be stringed together to form the final output, as sometimes,
+          SSH takes time to respond, or Serveo hasn't sent the output yet...,
+          which leads to the Promise getting hanged forever
+        */
+        let buffer = '';
     
         this._tunnelProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
           console.log(`stdout: ${output}`);
+
+          // This is to string the response from the 'data' event
+          buffer += output;
     
           // Try to extract the forwarding URL
-          this.url = this._extractServeoURL(output) as string;
-          resolve(this.url); // return the URL when found
+          const extractedUrl = this._extractServeoURL(buffer) as string;
+          if (extractedUrl) {
+            this.url = extractedUrl;
+            resolve(this.url); // return the URL when found
+          }
         });
     
         this._tunnelProcess.stderr.on('data', (data: Buffer) => {
@@ -68,6 +82,9 @@ export default class ServeoTunnel {
     
         this._tunnelProcess.on('close', (code) => {
           console.log(`Tunnel closed with code ${code}`);
+          if (!this.url) {
+            reject(new Error(`Tunnel closed before URL was obtained. Exit code: ${code}`));
+          }
         });
       } catch (err: any) {
         console.error('Error while starting SSH tunnel:', err.message);

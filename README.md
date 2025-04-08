@@ -69,4 +69,4 @@ No settings required
 - Buffer data from node's `data` emit event so that a valid URL from Serveo SSH is always returned.
 
 ### 1.3.5
-- Fix issue with not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively.
+- Fix issue of not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively.

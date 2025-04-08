@@ -83,5 +83,8 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Removing URL for disconnecting Ngrok globalisation of a local environment and Copying URL for sharing local dev from tree item is successful.
 ## [06/04/2025]
 - Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel as an alternative.
-- Dynamic switch between LocalTunnel and Serveo SSH as LocalTunnel poses a more apparent security risk because the developer needs to share their public IP address to other developers in order for them to access the sharer's environment. Therefore, Serveo SSH is introduced (it will fallback to LocalTunnel again if the sharer chooses the SSH approach but has none installed on their machine)
+- Dynamic switch between LocalTunnel and Serveo SSH as LocalTunnel poses a more apparent security risk because the developer needs to share their public IP address to other developers in order for them to access the sharer's environment. Therefore, Serveo SSH is introduced (it will fallback to LocalTunnel again if the sharer chooses the SSH approach but has none installed on their machine).
+## [08/04/2025]
+- Buffer data from node's `data` emit event so that a valid URL from Serveo SSH is always returned since data could be responded in chunks and therefore, the regex could never find the URL. That leads to a promise never gets resolved.
+- Fix issue with not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively due to incorrect data structure within the ServeoTunnel class.
 <br />

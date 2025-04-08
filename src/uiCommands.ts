@@ -135,13 +135,13 @@ export default class UICommands {
       });
 
       if (!inputted) {
-        vscode.window.showErrorMessage('[volyfequickdev] Input is not a valid value');
+        vscode.window.showErrorMessage(`[volyfequickdev] Input is not a valid value: ${inputted}`);
         return;
       }
 
       // If input the colon separator, then return
       if (inputted.indexOf(':') < 0) {
-        vscode.window.showErrorMessage('[volyfequickdev] Input is not accepted (something like localtunnel:8090 or serveo:8090)');
+        vscode.window.showErrorMessage(`[volyfequickdev] Input is not accepted (something like localtunnel:8090 or serveo:8090). Value is ${inputted}`);
         return;
       }
 

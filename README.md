@@ -64,3 +64,9 @@ No settings required
 
 ### 1.3.3
 - Encountered an issue with Ngrok not returning the content-type right for the css and js files, hence use LocalTunnel and Serveo SSH as an alternative.
+
+### 1.3.4
+- Buffer data from node's `data` emit event so that a valid URL from Serveo SSH is always returned.
+
+### 1.3.5
+- Fix issue with not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively.

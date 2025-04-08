@@ -3,7 +3,7 @@
 	"displayName": "Voly FE Quick Dev",
 	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file and in conjunction with other internal tools)",
 	"icon": "icon/voly.png",
-	"version": "1.3.4",
+	"version": "1.3.5",
 	"engines": {
 		"vscode": "^1.82.0"
 	},

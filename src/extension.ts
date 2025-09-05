@@ -185,7 +185,6 @@ class FrontendQuickDevExtension {
 		}
 
 		this.saveId++;
-		console.warn('this.saveId', this.saveId);
 
 		const instantiables = findInstantiables(
 			document.fileName,

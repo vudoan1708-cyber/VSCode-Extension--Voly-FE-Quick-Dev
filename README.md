@@ -70,3 +70,6 @@ No settings required
 
 ### 1.3.5
 - Fix issue of not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively.
+
+### 1.4.0
+- Hot reload for component build.

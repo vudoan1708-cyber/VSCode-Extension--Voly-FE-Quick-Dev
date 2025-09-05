@@ -15,9 +15,9 @@ export default class ShareLocalView implements vscode.TreeDataProvider<ExposedAd
     if (!this._address) {
       return [];
     }
-    return this._allAddresses.map((item) => new ExposedAddress(
+    return this._allAddresses.map((item, idx) => new ExposedAddress(
       item.addr,
-      `Exposed URL: ${item.addr} tunneled from ${item.port}`,
+      `${idx + 1}. ${item.addr} tunneled from ${item.port}`,
       vscode.TreeItemCollapsibleState.None,
     ));
   }

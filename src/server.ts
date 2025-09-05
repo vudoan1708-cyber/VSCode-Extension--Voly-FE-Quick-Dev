@@ -20,10 +20,12 @@ import fs from 'fs';
 
 // Constant
 import { DEV_BUILD_FOLDER } from './constants';
+import SSE from './sse';
 
 export default class KoaApp {
   private _instance: Koa;
   private _router: Router;
+  private _sse: SSE;
   private _serverApp: http.Server<any>;
   private _securedServerApp: https.Server<any>;
 	private _serverPortOptions: number[] = [ 8090, 9999 ];
@@ -40,9 +42,10 @@ export default class KoaApp {
 
   public selectedPort: number;
 
-  constructor(rootDirectory: string) {
+  constructor(rootDirectory: string, sse: SSE) {
     this._instance = new Koa();
     this._router = new Router();
+    this._sse = sse;
 
     this._instance.use(json());
     this._instance.use(cors(this._corsOptions));
@@ -155,9 +158,19 @@ export default class KoaApp {
     this._router.get('/dev-builds', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
       try {
         const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
+        const visited: { [key: string]: boolean } = {};
 
         if (dir.length > 0) {
-          context.body = dir.filter((file) => path.extname(file) !== '.map');
+          context.body = dir
+            .filter((file) => path.extname(file) !== '.map')
+            .map((file) => path.basename(file).split('.')[0])
+            .filter((name) => {
+            if (!visited[name]) {
+              visited[name] = true;
+              return true;
+            }
+            return false;
+          });
           return;
         }
         context.body = [];
@@ -166,6 +179,23 @@ export default class KoaApp {
         context.body = [];
       }
       next();
+    });
+    this._router.get('/dev-builds/sse', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
+      try {
+        context.set('Content-Type', 'text/event-stream');
+        context.set('Cache-Control', 'no-cache');
+        context.set('Connection', 'keep-alive');
+        context.status = 200;
+
+        // Important: don't let Koa auto-end the response
+        context.respond = false;
+
+        this._sse.addClient(context.res);
+        vscode.window.showInformationMessage('[volyfequickdev] SSE connection established');
+      } catch (ex) {
+        console.error(ex);
+        context.body = [];
+      }
     });
   }
 }

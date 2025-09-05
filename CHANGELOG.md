@@ -87,4 +87,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 ## [08/04/2025]
 - Buffer data from node's `data` emit event so that a valid URL from Serveo SSH is always returned since data could be responded in chunks and therefore, the regex could never find the URL. That leads to a promise never gets resolved.
 - Fix issue with not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively due to incorrect data structure within the ServeoTunnel class.
+## [05/09/2025]
+- Set up Server Sent Event to mimick hot-reload.
 <br />

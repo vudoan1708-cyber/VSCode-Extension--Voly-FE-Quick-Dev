@@ -11,6 +11,7 @@ import path from 'path';
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
 import User from './user';
+import SSE from './sse';
 import TunnelFactory from './tunnel/tunnelFactory';
 // import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
@@ -44,8 +45,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	// const hybridConnector = new RelayHybridConnectionFactory();
 	// LocalTunnel to expose local development to the world (for quick collaborative testing)
 	const tunnelFactory = new TunnelFactory();
+	// Server Sent Event
+	const sse = new SSE();
 	// Server
-	const server = new KoaApp(rootDirectory); 
+	const server = new KoaApp(rootDirectory, sse); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
 	// User
 	const user = new User();
@@ -71,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable2 = UICommands.toDeactivateExtension(context);
 	const disposable3 = UICommands.toRefreshFileEntry(folderViewProvider);
 	/* eslint-disable @typescript-eslint/naming-convention */
-	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder);
+	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder, sse, extension);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveFileEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
@@ -136,6 +139,8 @@ class FrontendQuickDevExtension {
 	private _terminalFactoryInstance: TerminalFactory;
 	private _koaApp: KoaApp;
 
+	public saveId: number = 0;
+
 	constructor(
 		context: vscode.ExtensionContext,
 		server: KoaApp,
@@ -178,6 +183,8 @@ class FrontendQuickDevExtension {
 			console.warn(`[volyfequickdev] ${path.basename(rootDirectory || '')} is not a target for the extension to run on`);
 			return;
 		}
+
+		this.saveId++;
 
 		const instantiables = findInstantiables(
 			document.fileName,

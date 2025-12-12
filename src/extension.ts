@@ -27,9 +27,10 @@ import { Instantiable } from './types';
 
 // Find the root directory from the current workspace
 const activeFileName = vscode.window.activeTextEditor?.document.fileName;
-let rootDirectory: string | undefined = vscode.workspace.workspaceFolders
+const workspaceDirectory: string | undefined = vscode.workspace.workspaceFolders
 	?.map((folder) => folder.uri.fsPath)
-	?.find((fsPath) => activeFileName?.startsWith(fsPath));
+	?.find((fsPath) => activeFileName?.startsWith(fsPath)) ?? '';
+let rootDirectory = path.join(workspaceDirectory, '..', '..');
 
 // Find the dev-builds folder from within the extension workspace
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
@@ -230,7 +231,7 @@ class FrontendQuickDevExtension {
 		// Relocate the root directory - useful when a dev is working in a multiworkspace window, or if there is no active document when VSCode extension got initialised
 		rootDirectory = vscode.workspace.workspaceFolders
 			?.map((folder) => folder.uri.fsPath)
-			?.find((fsPath) => document.fileName.startsWith(fsPath));
+			?.find((fsPath) => document.fileName.startsWith(fsPath)) ?? '';
 		// Locate the build folder
 		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
 

@@ -70,3 +70,6 @@ No settings required
 
 ### 1.3.5
 - Fix issue of not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively.
+
+### 2.0.0
+- BREAKING CHANGES: change root directory so that it is compatible with the new monorepo.

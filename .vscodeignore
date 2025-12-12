@@ -13,6 +13,7 @@ node_modules/**
 
 src/**
 !src/ssl-certs
+.env
 .gitignore
 .yarnrc
 webpack.config.js

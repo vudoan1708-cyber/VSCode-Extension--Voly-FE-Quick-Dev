@@ -20,5 +20,6 @@ export const INCLUSTION_LIST = [
   'vfm-ui-reports',
   'ui-system-config',
   'vfm-ui-system-config',
+  'voly-ui',
 ];
 export const IGNOREABLE_FOLDER_NAME_RULES = /(mock).*|(data).*|(api).*|(helper).*|(test).*|(util)/i;

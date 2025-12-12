@@ -154,6 +154,7 @@ export default class KoaApp {
     });
     this._router.get('/dev-builds', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
       try {
+        console.log('__dirname', __dirname)
         const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
 
         if (dir.length > 0) {

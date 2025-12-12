@@ -10,7 +10,7 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				// "${workspaceFolder}/../../voly-ui-system-config/ui-system-config",
+				// "${workspaceFolder}/../monorepo/voly-ui/libs/vfm-ui-system-config",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [

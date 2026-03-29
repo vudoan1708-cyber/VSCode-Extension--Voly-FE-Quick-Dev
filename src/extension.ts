@@ -26,11 +26,13 @@ import { findInstantiables, traceSourcesOfImport } from './helpers';
 import { Instantiable } from './types';
 
 // Find the root directory from the current workspace
-const activeFileName = vscode.window.activeTextEditor?.document.fileName;
+const activeFileName = vscode.window.activeTextEditor?.document?.fileName;
 const workspaceDirectory: string | undefined = vscode.workspace.workspaceFolders
 	?.map((folder) => folder.uri.fsPath)
 	?.find((fsPath) => activeFileName?.startsWith(fsPath)) ?? '';
-let rootDirectory = path.join(workspaceDirectory, '..', '..');
+let rootDirectory = workspaceDirectory.endsWith('voly-ui')
+	? path.join(workspaceDirectory)
+	: path.join(workspaceDirectory, '..', '..');
 
 // Find the dev-builds folder from within the extension workspace
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);

@@ -182,6 +182,8 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
+		let selectedApproach: Instantiable[];
+
 		const instantiables = findInstantiables(
 			document.fileName,
 			{
@@ -190,21 +192,24 @@ class FrontendQuickDevExtension {
 				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
 			})
 			.filter((i) => i.fullPath && i.fileName);
-		// Sources of import
-		const sources = traceSourcesOfImport(
-			document.fileName,
-			{
-				stopTillNotFound: 'src',
-				activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
-			}
-		);
 
-		let selectedApproach: Instantiable[];
-
-		if (sources.length === 0 && instantiables.length > 0) {
+		if (instantiables.length === 1) {
 			selectedApproach = [ ...instantiables ];
 		} else {
-			selectedApproach = [ ...sources ];
+			// Sources of import
+			const sources = traceSourcesOfImport(
+				document.fileName,
+				{
+					stopTillNotFound: 'src',
+					activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
+				}
+			);
+	
+			if (sources.length === 0 && instantiables.length > 0) {
+				selectedApproach = [ ...instantiables ];
+			} else {
+				selectedApproach = [ ...sources ];
+			}
 		}
 		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');

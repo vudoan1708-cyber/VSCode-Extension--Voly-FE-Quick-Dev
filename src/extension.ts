@@ -138,6 +138,7 @@ class FrontendQuickDevExtension {
 	private _context: vscode.ExtensionContext;
 	private _terminalFactoryInstance: TerminalFactory;
 	private _koaApp: KoaApp;
+	private _allowedLanguages: Array<string>;
 
 	constructor(
 		context: vscode.ExtensionContext,
@@ -147,10 +148,12 @@ class FrontendQuickDevExtension {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
-		// Instantiate an express app
+		// Instantiate a server app
 		this._koaApp = server;
 		this._koaApp.initialiseRoutes();
 		this._koaApp.serveStatic();
+
+		this._allowedLanguages = [ 'svelte', 'javascriptreact' ];
 	}
 
 	private _isEnabled() {
@@ -162,9 +165,8 @@ class FrontendQuickDevExtension {
 			console.warn('[volyfequickdev] Extension is not enabled');
 			return;
 		}
-
-		if (document.languageId !== 'svelte' || document.fileName.includes('stories')) {
-			console.warn('[volyfequickdev] Not a valid svelte component file');
+		if (!this._allowedLanguages.includes(document.languageId) || document.fileName.includes('stories')) {
+			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files`);
 			return;
 		}
 

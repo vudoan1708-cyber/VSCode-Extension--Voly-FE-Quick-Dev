@@ -10,7 +10,7 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"${workspaceFolder}/../monorepo/voly-ui/libs/vfm-ui-invoices",
+				// "${workspaceFolder}/../monorepo/voly-ui",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [

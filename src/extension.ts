@@ -160,12 +160,54 @@ class FrontendQuickDevExtension {
 		return !!this._context.globalState.get('volyfequickdev_activated', true);
 	}
 
+	private _isThemeFile(document: vscode.TextDocument) {
+		return document.languageId === 'json' && document.fileName.includes('voly-ui/libs/vfm-ui-themes') && document.fileName.endsWith('config.json');
+	}
+
+	private _isFileAllowed(document: vscode.TextDocument) {
+		return this._allowedLanguages.includes(document.languageId) || this._isThemeFile(document);
+	}
+
+	private _buildComponents(fileName: string): Instantiable[] {
+		let files: Instantiable[];
+
+		const instantiables = findInstantiables(
+			fileName,
+			{
+				stopTillNotFound: 'src',
+				savedFilePathExist: this._terminalFactoryInstance.activePathsExist(fileName),
+				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
+			})
+			.filter((i) => i.fullPath && i.fileName);
+
+		if (instantiables.length === 1) {
+			files = [ ...instantiables ];
+		} else {
+			// Sources of import
+			const sources = traceSourcesOfImport(
+				fileName,
+				{
+					stopTillNotFound: 'src',
+					activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
+				}
+			);
+	
+			if (sources.length === 0 && instantiables.length > 0) {
+				files = [ ...instantiables ];
+			} else {
+				files = [ ...sources ];
+			}
+		}
+
+		return files;
+	}
+
 	public async run(document: vscode.TextDocument) {
 		if (!this._isEnabled()) {
 			console.warn('[volyfequickdev] Extension is not enabled');
 			return;
 		}
-		if (!this._allowedLanguages.includes(document.languageId) || document.fileName.includes('stories')) {
+		if (!this._isFileAllowed(document) || document.fileName.includes('stories')) {
 			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files`);
 			return;
 		}
@@ -186,33 +228,7 @@ class FrontendQuickDevExtension {
 
 		let selectedApproach: Instantiable[];
 
-		const instantiables = findInstantiables(
-			document.fileName,
-			{
-				stopTillNotFound: 'src',
-				savedFilePathExist: this._terminalFactoryInstance.activePathsExist(document.fileName),
-				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
-			})
-			.filter((i) => i.fullPath && i.fileName);
-
-		if (instantiables.length === 1) {
-			selectedApproach = [ ...instantiables ];
-		} else {
-			// Sources of import
-			const sources = traceSourcesOfImport(
-				document.fileName,
-				{
-					stopTillNotFound: 'src',
-					activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
-				}
-			);
-	
-			if (sources.length === 0 && instantiables.length > 0) {
-				selectedApproach = [ ...instantiables ];
-			} else {
-				selectedApproach = [ ...sources ];
-			}
-		}
+		selectedApproach = this._isThemeFile(document) ? [{ fullPath: document.fileName, fileName: savedFileName }] : this._buildComponents(document.fileName);
 		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal
@@ -226,8 +242,16 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);
-		terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}"`);
+		switch (true) {
+			case this._isThemeFile(document):
+				const parentFolder = path.dirname(path.resolve(instantiablePath));
+				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}"`);
+				break;
+			default:
+				terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);
+				terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}"`);
+				break;
+		}
 		const status = await this._terminalFactoryInstance.terminate(terminal);
 
 		// If user forcibly close the terminal or if the reason for closing a terminal is not naturally by the shell process

@@ -37,7 +37,7 @@ export default class TerminalFactory {
     location?: vscode.TerminalLocation
   ): Terminal | void {
     if (!uniqueFileName) {
-      console.log('File name not defined. Possibly due to saving the same file name');
+      console.warn('File name not defined. Possibly due to saving the same file name');
       return;
     }
     // Check for duplicate terminal name or id
@@ -46,7 +46,7 @@ export default class TerminalFactory {
     ));
 
     if (found) {
-      console.log('Terminal containing certain file IDs has been activated');
+      console.warn('Terminal containing certain file IDs has been activated');
       return;
     }
 

@@ -154,10 +154,28 @@ export default class KoaApp {
     });
     this._router.get('/dev-builds', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
       try {
-        const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
+        const buildDir = path.join(__dirname, '..', DEV_BUILD_FOLDER);
+        const dir = fs.readdirSync(buildDir);
 
         if (dir.length > 0) {
-          context.body = dir.filter((file) => path.extname(file) !== '.map');
+          const files = dir.filter((file) => file !== 'theme' && path.extname(file) !== '.map');
+
+          const themeDir = path.join(buildDir, 'theme');
+          if (fs.existsSync(themeDir)) {
+            const flattenDir = (dirPath: string) => {
+              for (const entry of fs.readdirSync(dirPath)) {
+                const fullPath = path.join(dirPath, entry);
+                if (fs.statSync(fullPath).isDirectory()) {
+                  flattenDir(fullPath);
+                } else if (entry !== 'index.json' && path.extname(entry) !== '.map') {
+                  files.push(`theme/${path.relative(themeDir, fullPath)}`);
+                }
+              }
+            };
+            flattenDir(themeDir);
+          }
+
+          context.body = files;
           return;
         }
         context.body = [];

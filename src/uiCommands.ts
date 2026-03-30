@@ -27,7 +27,7 @@ export default class UICommands {
   ): vscode.Disposable[] {
     const localBuildsFolder = vscode.Uri.file(path.join(rootDirectoryFromTheOtherSide, 'build'));
     const fileWatcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(localBuildsFolder, '*.{js, css}')
+      new vscode.RelativePattern(localBuildsFolder, '**/*')
     );
     const copyFiles = async (uri: vscode.Uri) => {
       await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
@@ -66,11 +66,11 @@ export default class UICommands {
         await vscode.commands.executeCommand('volyfequickdev.folder-explorer.remove-dev-builds-folder');
       } else if (multiSelectedTreeItems.length > 1) {
         multiSelectedTreeItems.forEach((file) => {
-          fs.rmSync(file.fullPath, { force: true });
+          fs.rmSync(file.fullPath, { force: true, recursive: true });
         });
         vscode.window.showInformationMessage(`[volyfequickdev] ${multiSelectedTreeItems.length} items have been removed`);
       } else {
-        fs.rmSync(node.fullPath, { force: true });
+        fs.rmSync(node.fullPath, { force: true, recursive: true });
         vscode.window.showInformationMessage(`[volyfequickdev] ${node.label} has been removed`);
       }
       vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');

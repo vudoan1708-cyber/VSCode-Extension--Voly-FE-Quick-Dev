@@ -208,7 +208,7 @@ class FrontendQuickDevExtension {
 			return;
 		}
 		if (!this._isFileAllowed(document) || document.fileName.includes('stories')) {
-			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files`);
+			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files or .json for themes`);
 			return;
 		}
 
@@ -233,8 +233,8 @@ class FrontendQuickDevExtension {
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal
 		const terminal = this._terminalFactoryInstance.createTerminal(
-			`volyfequickdev terminal: ${savedFileName}`,
-			instantiableDataComponent,
+			this._isThemeFile(document) ? `volyfequickdev terminal: ${document.fileName}` : `volyfequickdev terminal: ${savedFileName}`,
+			this._isThemeFile(document) ? instantiablePath : instantiableDataComponent,
 			instantiablePath,
 			document.fileName,
 		);
@@ -245,7 +245,7 @@ class FrontendQuickDevExtension {
 		switch (true) {
 			case this._isThemeFile(document):
 				const parentFolder = path.dirname(path.resolve(instantiablePath));
-				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}"`);
+				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}" -- --release-environment=dev-builds`);
 				break;
 			default:
 				terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);

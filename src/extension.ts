@@ -245,7 +245,7 @@ class FrontendQuickDevExtension {
 		switch (true) {
 			case this._isThemeFile(document):
 				const parentFolder = path.dirname(path.resolve(instantiablePath));
-				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}" -- --release-environment=dev-builds`);
+				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}" --configDevPort="${this._koaApp.selectedPort}" -- --release-environment=dev-builds`);
 				break;
 			default:
 				terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);

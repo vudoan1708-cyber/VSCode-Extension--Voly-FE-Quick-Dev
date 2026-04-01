@@ -168,7 +168,7 @@ class FrontendQuickDevExtension {
 		return this._allowedLanguages.includes(document.languageId) || this._isThemeFile(document);
 	}
 
-	private _buildComponents(fileName: string): Instantiable[] {
+	private _traceBuildableComponents(fileName: string): Instantiable[] {
 		let files: Instantiable[];
 
 		const instantiables = findInstantiables(
@@ -228,7 +228,7 @@ class FrontendQuickDevExtension {
 
 		let selectedApproach: Instantiable[];
 
-		selectedApproach = this._isThemeFile(document) ? [{ fullPath: document.fileName, fileName: savedFileName }] : this._buildComponents(document.fileName);
+		selectedApproach = this._isThemeFile(document) ? [{ fullPath: document.fileName, fileName: savedFileName }] : this._traceBuildableComponents(document.fileName);
 		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal

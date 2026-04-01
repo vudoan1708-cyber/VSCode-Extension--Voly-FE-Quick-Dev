@@ -88,5 +88,10 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Buffer data from node's `data` emit event so that a valid URL from Serveo SSH is always returned since data could be responded in chunks and therefore, the regex could never find the URL. That leads to a promise never gets resolved.
 - Fix issue with not being able to remove a Serveo SSH tunnel after using Serveo and LocalTunnel methods respectively due to incorrect data structure within the ServeoTunnel class.
 ## [12/12/2025]
-- BREAKING CHANGES: change root directory so that it is compatible with the new monorepo
+- BREAKING CHANGES: change root directory so that it is compatible with the new monorepo.
+## [01/04/2026]
+- Allow developing in eitherlibrary root or voly-ui root directory.
+- Allow running on React files now (if it is imported in an instatiable Svelte component file).
+- Allow debugging theme from vfm-ui-themes library or from voly-ui root.
+- Prioritise self-instantiation if found early (reduce wasted time on recursive tracing for source of import).
 <br />

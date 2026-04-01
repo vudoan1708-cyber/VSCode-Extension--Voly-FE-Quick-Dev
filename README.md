@@ -73,3 +73,8 @@ No settings required
 
 ### 2.0.0
 - BREAKING CHANGES: change root directory so that it is compatible with the new monorepo.
+
+### 2.1.0
+- Allow developing in eitherlibrary root or voly-ui root directory.
+- Allow running on React files now (if it is imported in an instatiable Svelte component file).
+- Allow debugging theme from vfm-ui-themes library or from voly-ui root.

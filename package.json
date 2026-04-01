@@ -1,9 +1,9 @@
 {
 	"name": "volyfequickdev",
 	"displayName": "Voly FE Quick Dev",
-	"description": "A quick dev tool to be used in Voly FE codebase (only works on Svelte file and in conjunction with other internal tools)",
+	"description": "A quick dev tool to be used in Voly FE codebase (only works in Svelte, React, theme's config.json files and in conjunction with other internal tools)",
 	"icon": "icon/voly.png",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"engines": {
 		"vscode": "^1.82.0"
 	},

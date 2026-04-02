@@ -235,6 +235,23 @@ export default class UICommands {
     });
   }
 
+  // Clear on Save
+  public static toActivateClearBuildOnSave(context: vscode.ExtensionContext): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.activate-multiTerminal', () => {
+      context.globalState.update('volyfequickdev_multiTerminal', true);
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+      vscode.window.showInformationMessage('[volyfequickdev] ✅ Allow developing on multiple terminals');
+    });
+  }
+  public static toDeactivateClearBuildOnSave(context: vscode.ExtensionContext): vscode.Disposable {
+    return vscode.commands.registerCommand('volyfequickdev.settings.deactivate-multiTerminal', () => {
+      context.globalState.update('volyfequickdev_multiTerminal', false);
+      vscode.commands.executeCommand('volyfequickdev.settings.refresh-view');
+      vscode.window.showInformationMessage('[volyfequickdev] ❌ Disallow developing on multiple terminals');
+    });
+  }
+
+  // Extension
   public static toActivateExtension(context: vscode.ExtensionContext): vscode.Disposable {
     return vscode.commands.registerCommand('volyfequickdev.settings.activate-extension', () => {
       context.globalState.update('volyfequickdev_activated', true);

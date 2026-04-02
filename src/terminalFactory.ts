@@ -32,6 +32,7 @@ export default class TerminalFactory {
     uniqueFileName: string,
     uniquePathsPerInstance: string,
     savedTargetPath: string,
+    canDevOnMultiTerminals: boolean,
     shellPath?: string,
     shellArgs?: string,
     location?: vscode.TerminalLocation
@@ -62,10 +63,19 @@ export default class TerminalFactory {
     });
     delete this._terminatedTerminals[uniquePathsPerInstance];
 
+    if (!canDevOnMultiTerminals) {
+      this.dispose(this._activeTerminals);
+    }
     return createdTerminal;
   }
 
-  public async terminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
+  public dispose(activeTerminals: TerminalRecord[]): void {
+    if (activeTerminals?.length > 1) {
+      activeTerminals[0].instance.dispose();
+    }
+  }
+
+  public async willTerminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
     try {
       const exitStatus = await terminal.close();
       this._activeTerminals = this._activeTerminals.filter((t) => {

@@ -94,4 +94,5 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Allow running on React files now (if it is imported in an instatiable Svelte component file).
 - Allow debugging theme from vfm-ui-themes library or from voly-ui root.
 - Prioritise self-instantiation if found early (reduce wasted time on recursive tracing for source of import).
+- Cleanup unused / unreachable code.
 <br />

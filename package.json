@@ -102,6 +102,24 @@
 				}
 			},
 			{
+				"command": "volyfequickdev.settings.activate-multiTerminal",
+				"category": "Voly FE Quick Dev",
+				"title": "Allow developing on multiple terminals",
+				"icon": {
+					"light": "icon/light/toggle-off.svg",
+					"dark": "icon/dark/toggle-off.svg"
+				}
+			},
+			{
+				"command": "volyfequickdev.settings.deactivate-multiTerminal",
+				"category": "Voly FE Quick Dev",
+				"title": "Disallow developing on multiple terminals",
+				"icon": {
+					"light": "icon/light/toggle-on.svg",
+					"dark": "icon/dark/toggle-on.svg"
+				}
+			},
+			{
 				"command": "volyfequickdev.settings.activate-extension",
 				"category": "Voly FE Quick Dev",
 				"title": "Activate extension",
@@ -219,6 +237,16 @@
 					"command": "volyfequickdev.settings.activate-extension",
 					"group": "inline",
 					"when": "view == volyfequickdev-settings && viewItem == extensionStat.activation-status.false"
+				},
+				{
+					"command": "volyfequickdev.settings.deactivate-multiTerminal",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == multiTerminal.status.true"
+				},
+				{
+					"command": "volyfequickdev.settings.activate-multiTerminal",
+					"group": "inline",
+					"when": "view == volyfequickdev-settings && viewItem == multiTerminal.status.false"
 				}
 			]
 		}

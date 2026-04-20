@@ -10,9 +10,7 @@ import path from 'path';
 // Classes
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
-import User from './user';
 import TunnelFactory from './tunnel/tunnelFactory';
-// import RelayHybridConnectionFactory from './azure-relay/relayHybridConnectionFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';
 
@@ -26,11 +24,13 @@ import { findInstantiables, traceSourcesOfImport } from './helpers';
 import { Instantiable } from './types';
 
 // Find the root directory from the current workspace
-const activeFileName = vscode.window.activeTextEditor?.document.fileName;
+const activeFileName = vscode.window.activeTextEditor?.document?.fileName;
 const workspaceDirectory: string | undefined = vscode.workspace.workspaceFolders
 	?.map((folder) => folder.uri.fsPath)
 	?.find((fsPath) => activeFileName?.startsWith(fsPath)) ?? '';
-let rootDirectory = path.join(workspaceDirectory, '..', '..');
+let rootDirectory = workspaceDirectory.endsWith('voly-ui')
+	? path.join(workspaceDirectory)
+	: path.join(workspaceDirectory, '..', '..');
 
 // Find the dev-builds folder from within the extension workspace
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
@@ -48,8 +48,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Server
 	const server = new KoaApp(rootDirectory); 
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
-	// User
-	const user = new User();
 	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
 	const sharedLocalViewProvider = new ShareLocalView();
@@ -76,8 +74,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveFileEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
-	// const disposable8 = UICommands.toConnectWithAnotherLocal(rootDirectory as string, user.role, sharedLocalViewProvider, hybridConnector);
-	// const disposable9 = UICommands.toShareLocal(pathToDevBuildsFolder, hybridConnector);
 	const disposable8 = UICommands.toExposeLocalToTheWorld(sharedLocalViewProvider, tunnelFactory);
 	const disposable9 = UICommands.toRefreshAddressView(sharedLocalViewProvider);
 	const disposable10 = UICommands.toCopyAddressURL(sharedLocalTreeView);
@@ -88,8 +84,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable15 = UICommands.toSwitchToHttp(server);
 	const disposable16 = UICommands.toSwitchToHttps(server);
 	const disposable17 = UICommands.toRefreshSettingView(settingViewProvider);
+	const disposable18 = UICommands.toActivateClearBuildOnSave(context);
+	const disposable19 = UICommands.toDeactivateClearBuildOnSave(context);
 
-	const disposable18 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+	const disposable20 = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
 		await extension.run(document);
 	});
 
@@ -117,6 +115,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		disposable16,
 		disposable17,
 		disposable18,
+		disposable19,
+		disposable20,
 	);
 }
 
@@ -136,6 +136,7 @@ class FrontendQuickDevExtension {
 	private _context: vscode.ExtensionContext;
 	private _terminalFactoryInstance: TerminalFactory;
 	private _koaApp: KoaApp;
+	private _allowedLanguages: Array<string>;
 
 	constructor(
 		context: vscode.ExtensionContext,
@@ -145,14 +146,58 @@ class FrontendQuickDevExtension {
 		this._context = context;
 		this._terminalFactoryInstance = terminalFactory;
 
-		// Instantiate an express app
+		// Instantiate a server app
 		this._koaApp = server;
 		this._koaApp.initialiseRoutes();
 		this._koaApp.serveStatic();
+
+		this._allowedLanguages = [ 'svelte', 'javascriptreact' ];
 	}
 
 	private _isEnabled() {
 		return !!this._context.globalState.get('volyfequickdev_activated', true);
+	}
+
+	private _isThemeFile(document: vscode.TextDocument) {
+		return document.languageId === 'json' && document.fileName.includes('voly-ui/libs/vfm-ui-themes') && document.fileName.endsWith('config.json');
+	}
+
+	private _isFileAllowed(document: vscode.TextDocument) {
+		return this._allowedLanguages.includes(document.languageId) || this._isThemeFile(document);
+	}
+
+	private _traceBuildableComponents(fileName: string): Instantiable[] {
+		let files: Instantiable[];
+
+		const instantiables = findInstantiables(
+			fileName,
+			{
+				stopTillNotFound: 'src',
+				savedFilePathExist: this._terminalFactoryInstance.activePathsExist(fileName),
+				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
+			})
+			.filter((i) => i.fullPath && i.fileName);
+
+		if (instantiables.length === 1) {
+			files = [ ...instantiables ];
+		} else {
+			// Sources of import
+			const sources = traceSourcesOfImport(
+				fileName,
+				{
+					stopTillNotFound: 'src',
+					activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
+				}
+			);
+	
+			if (sources.length === 0 && instantiables.length > 0) {
+				files = [ ...instantiables ];
+			} else {
+				files = [ ...sources ];
+			}
+		}
+
+		return files;
 	}
 
 	public async run(document: vscode.TextDocument) {
@@ -160,9 +205,8 @@ class FrontendQuickDevExtension {
 			console.warn('[volyfequickdev] Extension is not enabled');
 			return;
 		}
-
-		if (document.languageId !== 'svelte' || document.fileName.includes('stories')) {
-			console.warn('[volyfequickdev] Not a valid svelte component file');
+		if (!this._isFileAllowed(document) || document.fileName.includes('stories')) {
+			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files or config.json for themes`);
 			return;
 		}
 
@@ -180,69 +224,38 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
-		const instantiables = findInstantiables(
-			document.fileName,
-			{
-				stopTillNotFound: 'src',
-				savedFilePathExist: this._terminalFactoryInstance.activePathsExist(document.fileName),
-				terminatedTerminalPaths: this._terminalFactoryInstance.findTerminatedPaths(),
-			})
-			.filter((i) => i.fullPath && i.fileName);
-		// Sources of import
-		const sources = traceSourcesOfImport(
-			document.fileName,
-			{
-				stopTillNotFound: 'src',
-				activeTerminalIds: this._terminalFactoryInstance.hashActiveIds(),
-			}
-		);
-
 		let selectedApproach: Instantiable[];
 
-		if (sources.length === 0 && instantiables.length > 0) {
-			selectedApproach = [ ...instantiables ];
-		} else {
-			selectedApproach = [ ...sources ];
-		}
+		selectedApproach = this._isThemeFile(document) ? [{ fullPath: document.fileName, fileName: savedFileName }] : this._traceBuildableComponents(document.fileName);
 		const instantiablePath = selectedApproach.map((i) => i.fullPath).join(',');
 		const instantiableDataComponent = selectedApproach.map((i) => i.fileName).join(',');
 		// Instantiate a custom terminal
+		const canDevOnMultiTerminals = this._context.globalState.get('volyfequickdev_multiTerminal', true);
 		const terminal = this._terminalFactoryInstance.createTerminal(
-			`volyfequickdev terminal: ${savedFileName}`,
-			instantiableDataComponent,
+			this._isThemeFile(document) ? `volyfequickdev terminal: ${document.fileName}` : `volyfequickdev terminal: ${savedFileName}`,
+			this._isThemeFile(document) ? instantiablePath : instantiableDataComponent,
 			instantiablePath,
 			document.fileName,
+			canDevOnMultiTerminals,
 		);
 		if (!terminal) {
 			return;
 		}
 
-		terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts`);
-		terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}"`);
-		const status = await this._terminalFactoryInstance.terminate(terminal);
-
+		switch (true) {
+			case this._isThemeFile(document):
+				const parentFolder = path.dirname(path.resolve(instantiablePath));
+				terminal.sendText(`npm run build-theme-dev --configDevBuilds="${parentFolder}" --configDevPort="${this._koaApp.selectedPort}" -- --release-environment=dev-builds`);
+				break;
+			default:
+				terminal.sendText(`npm run instantiation-scripts-gen --component="${instantiablePath}" --keepOldScripts=${canDevOnMultiTerminals}`);
+				terminal.sendText(`npm run build-dev --configDevBuilds="${instantiableDataComponent}" --configEmptyOutDir=${!canDevOnMultiTerminals}`);
+				break;
+		}
+		const status = await this._terminalFactoryInstance.willTerminate(terminal);
 		// If user forcibly close the terminal or if the reason for closing a terminal is not naturally by the shell process
 		if (status.code === undefined || status.reason !== 2) {
-			return;
-		}
-
-		vscode.window.showInformationMessage('Build completed. Locating built file(s) and making copies of them to the extension\'s local workspace...');
-
-		// Relocate the root directory - useful when a dev is working in a multiworkspace window, or if there is no active document when VSCode extension got initialised
-		rootDirectory = vscode.workspace.workspaceFolders
-			?.map((folder) => folder.uri.fsPath)
-			?.find((fsPath) => document.fileName.startsWith(fsPath)) ?? '';
-		// Locate the build folder
-		const localBuildsFolder = vscode.Uri.file(`${rootDirectory}/build`);
-
-		try {
-			await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
-			vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
-			vscode.window.showInformationMessage('The built file(s) are now fetchable via the /dev-builds endpoint...');
-		} catch (err) {
-			console.error(err);
-			// TODO: Need to prompt user to perform the copying again
-			vscode.window.showErrorMessage('Files could not be synced up to the extension workspace. Please retry');
+			console.error('Terminal was forcibly closed');
 		}
 	}
 }

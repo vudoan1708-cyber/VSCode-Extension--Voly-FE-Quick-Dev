@@ -24,6 +24,7 @@ export default class SettingView implements vscode.TreeDataProvider<SettingItem>
   private _getSettingItems(): SettingItem[] {
     const serverListeningState = this._server.checkListeningState() || this._server.checkSecuredListeningState();
     const extensionActivationState = !!this._extensionContext.globalState.get('volyfequickdev_activated', true);
+    const allowMultiTerminalActivationState = !!this._extensionContext.globalState.get('volyfequickdev_multiTerminal', true);
     this._allItems = [
       {
         id: 'serverStat',
@@ -34,7 +35,7 @@ export default class SettingView implements vscode.TreeDataProvider<SettingItem>
       },
       {
         id: 'protocolSwitch',
-        label: 'Network Protocol',
+        label: 'Network protocol',
         value: this._server.checkSecuredListeningState() ? 'HTTPS' : 'HTTP',
         rawValue: this._server.checkSecuredListeningState() ? 'https' : 'http',
         formatting: '\t\t',
@@ -51,6 +52,13 @@ export default class SettingView implements vscode.TreeDataProvider<SettingItem>
         label: 'Extension status',
         value: extensionActivationState ? '✅' : '❌',
         rawValue: extensionActivationState,
+        formatting: '\t\t',
+      },
+      {
+        id: 'multiTerminal',
+        label: 'Multi-terminal',
+        value: allowMultiTerminalActivationState ? '✅' : '❌',
+        rawValue: allowMultiTerminalActivationState,
         formatting: '\t\t',
       },
     ];
@@ -89,6 +97,11 @@ export class SettingItem extends vscode.TreeItem {
     // Network protocol
     if (id === 'protocolSwitch') {
       this.contextValue = `${this.id}.${this.rawValue}`;
+      return;
+    }
+    // Clear on save
+    if (id === 'multiTerminal') {
+      this.contextValue = `${this.id}.status.${this.rawValue}`;
       return;
     }
     this.contextValue = this.id;

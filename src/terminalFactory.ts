@@ -32,12 +32,13 @@ export default class TerminalFactory {
     uniqueFileName: string,
     uniquePathsPerInstance: string,
     savedTargetPath: string,
+    canDevOnMultiTerminals: boolean,
     shellPath?: string,
     shellArgs?: string,
     location?: vscode.TerminalLocation
   ): Terminal | void {
     if (!uniqueFileName) {
-      console.log('File name not defined. Possibly due to saving the same file name');
+      console.warn('File name not defined. Possibly due to saving the same file name');
       return;
     }
     // Check for duplicate terminal name or id
@@ -46,7 +47,7 @@ export default class TerminalFactory {
     ));
 
     if (found) {
-      console.log('Terminal containing certain file IDs has been activated');
+      console.warn('Terminal containing certain file IDs has been activated');
       return;
     }
 
@@ -62,10 +63,19 @@ export default class TerminalFactory {
     });
     delete this._terminatedTerminals[uniquePathsPerInstance];
 
+    if (!canDevOnMultiTerminals) {
+      this.dispose(this._activeTerminals);
+    }
     return createdTerminal;
   }
 
-  public async terminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
+  public dispose(activeTerminals: TerminalRecord[]): void {
+    if (activeTerminals?.length > 1) {
+      activeTerminals[0].instance.dispose();
+    }
+  }
+
+  public async willTerminate(terminal: Terminal): Promise<vscode.TerminalExitStatus> {
     try {
       const exitStatus = await terminal.close();
       this._activeTerminals = this._activeTerminals.filter((t) => {

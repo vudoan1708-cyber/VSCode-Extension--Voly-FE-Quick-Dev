@@ -11,10 +11,6 @@ This extension is used to help speed up the frontend development process at Voly
 
 No settings required
 
-## Known Issues
-
-1. UI-Loader will always fetch the endpoint on page load, need to add something to the Voly system as a flag to ensure it only makes call when necessary
-
 ## Release Notes
 
 ### 1.0.0
@@ -73,3 +69,9 @@ No settings required
 
 ### 2.0.0
 - BREAKING CHANGES: change root directory so that it is compatible with the new monorepo.
+
+### 2.1.0
+- Allow developing in eitherlibrary root or voly-ui root directory.
+- Allow running on React files now (if it is imported in an instatiable Svelte component file).
+- Allow debugging theme from vfm-ui-themes library or from voly-ui root.
+- Introduce multi-terminal terminology (allow dev to specify running multiple terminals for different builds or running only 1 instance as their machine's CPU allows).

@@ -13,6 +13,7 @@ import TunnelFactory from './tunnel/tunnelFactory';
 // import User from './user';
 import KoaApp from './server';
 import SettingView from './ui/settings';
+import SSE from './sse';
 
 export default class UICommands {
   public static toRefreshFileEntry(folderViewProvider: FolderView): vscode.Disposable {
@@ -23,7 +24,9 @@ export default class UICommands {
 
   public static toWatchDevBuildsFolderChangeAndUpdate(
     rootDirectoryFromTheOtherSide: string,
-    pathToDevBuildsFolder: string
+    pathToDevBuildsFolder: string,
+    sse: SSE,
+    extension: any,
   ): vscode.Disposable[] {
     const localBuildsFolder = vscode.Uri.file(path.join(rootDirectoryFromTheOtherSide, 'build'));
     const fileWatcher = vscode.workspace.createFileSystemWatcher(
@@ -33,6 +36,12 @@ export default class UICommands {
       await vscode.workspace.fs.copy(localBuildsFolder, vscode.Uri.file(pathToDevBuildsFolder), { overwrite: true });
 			await vscode.commands.executeCommand('volyfequickdev.folder-explorer.refresh-entry');
       vscode.window.showInformationMessage(`[volyfequickdev] ${path.basename(uri.path)} is available via the /dev-builds endpoint`);
+
+      const dir = fs.readdirSync(pathToDevBuildsFolder);
+
+      if (dir.length > 0) {
+        sse?.sendEvent('files', { saveId: extension.saveId, files: [path.basename(uri.path).split('.')[0]] });
+      }
     };
 
     const disposable = fileWatcher.onDidCreate(async (uri) => {
@@ -159,7 +168,7 @@ export default class UICommands {
 
       try {
         const response = await tunn.forward({ port: Number(port), method });
-        sharedLocalViewProvider.assignAddress(response as string, inputted);
+        sharedLocalViewProvider.assignAddress(response as string, port);
         vscode.window.showInformationMessage(`[volyfequickdev]  Ingress established at: ${response}`);
         vscode.commands.executeCommand('volyfequickdev.share-local.refresh-view');
       } catch (err) {

@@ -29,7 +29,7 @@ export default class KoaApp {
   private _serverApp: http.Server<any>;
   private _securedServerApp: https.Server<any>;
 	private _serverPortOptions: number[] = [ 8090, 9999 ];
-  private _whitelist = [ 'https://test2.voly.co.uk', 'http://localhost', 'http://voly.docker', 'http://voly.local' ];
+  private _whitelist = [ 'https://test2.voly.co.uk', 'https://demo.voly.co.uk', 'http://localhost', 'http://voly.docker', 'http://voly.local' ];
   private _corsOptions: cors.Options = {
     origin: (request: Request) => {
       if (this._whitelist.indexOf(request.headers.origin || '') > -1 || !request.headers.origin) {
@@ -157,20 +157,28 @@ export default class KoaApp {
     });
     this._router.get('/dev-builds', (context: Koa.ParameterizedContext<any, Router.IRouterParamContext<any, {}>, any>, next: Koa.Next) => {
       try {
-        const dir = fs.readdirSync(path.join(__dirname, '..', DEV_BUILD_FOLDER));
-        const visited: { [key: string]: boolean } = {};
+        const buildDir = path.join(__dirname, '..', DEV_BUILD_FOLDER);
+        const dir = fs.readdirSync(buildDir);
 
         if (dir.length > 0) {
-          context.body = dir
-            .filter((file) => path.extname(file) !== '.map')
-            .map((file) => path.basename(file).split('.')[0])
-            .filter((name) => {
-            if (!visited[name]) {
-              visited[name] = true;
-              return true;
-            }
-            return false;
-          });
+          const files = dir.filter((file) => file !== 'theme' && path.extname(file) !== '.map');
+
+          const themeDir = path.join(buildDir, 'theme');
+          if (fs.existsSync(themeDir)) {
+            const flattenDir = (dirPath: string) => {
+              for (const entry of fs.readdirSync(dirPath)) {
+                const fullPath = path.join(dirPath, entry);
+                if (fs.statSync(fullPath).isDirectory()) {
+                  flattenDir(fullPath);
+                } else if (entry !== 'index.json' && path.extname(entry) !== '.map') {
+                  files.push(`theme/${path.relative(themeDir, fullPath)}`);
+                }
+              }
+            };
+            flattenDir(themeDir);
+          }
+
+          context.body = files;
           return;
         }
         context.body = [];

@@ -24,11 +24,17 @@ export default class FolderView implements vscode.TreeDataProvider<BuiltFile> {
 
 		return true;
 	}
-  private _getFilesInDevBuildsFolder(fullPathToFolder: string): BuiltFile[] {
+  private _getEntries(fullPathToFolder: string): BuiltFile[] {
     if (this._pathExists(fullPathToFolder) && this._workspaceRoot) {
-      return fs.readdirSync(fullPathToFolder).map((file) => (
-        new BuiltFile(file, path.join(fullPathToFolder, file), vscode.TreeItemCollapsibleState.None)
-      ));
+      return fs.readdirSync(fullPathToFolder).map((file) => {
+        const filePath = path.join(fullPathToFolder, file);
+        const isDirectory = fs.statSync(filePath).isDirectory();
+        return new BuiltFile(
+          file,
+          filePath,
+          isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
+        );
+      });
     }
 
     return [];
@@ -42,15 +48,19 @@ export default class FolderView implements vscode.TreeDataProvider<BuiltFile> {
 		return element;
 	}
 
-  getChildren(): Thenable<BuiltFile[]> {
+  getChildren(element?: BuiltFile): Thenable<BuiltFile[]> {
     if (!this._workspaceRoot) {
 			vscode.window.showWarningMessage('Empty workspace');
 			return Promise.resolve([]);
 		}
 
+    if (element) {
+      return Promise.resolve(this._getEntries(element.fullPath));
+    }
+
     const devBuildsFolder = path.join(this._workspaceRoot, DEV_BUILD_FOLDER);
     if (this._pathExists(devBuildsFolder)) {
-      return Promise.resolve(this._getFilesInDevBuildsFolder(devBuildsFolder));
+      return Promise.resolve(this._getEntries(devBuildsFolder));
     }
     vscode.window.showInformationMessage('Workspace has no dev-builds folder');
     return Promise.resolve([]);

@@ -18,6 +18,10 @@ export default class TerminalFactory {
     return !!this._activeTerminals.find((t) => t.uniquePathsPerInstance.includes(absolute));
   }
 
+  public hasActiveForPath(savedTargetPath: string) {
+    return !!this._activeTerminals.find((terminal) => terminal.savedTargetPath === savedTargetPath);
+  }
+
   public hashActiveIds() {
     const obj: { [key: string]: boolean } = {};
     for (let i = 0; i < this._activeTerminals.length; i += 1){
@@ -41,13 +45,9 @@ export default class TerminalFactory {
       console.warn('File name not defined. Possibly due to saving the same file name');
       return;
     }
-    // Check for duplicate terminal name or id
-    const found = this._activeTerminals.find((terminal: { instance: Terminal, id: string }) => (
-      terminal.instance.name.includes(name) || terminal.id.includes(uniqueFileName)
-    ));
-
-    if (found) {
-      console.warn('Terminal containing certain file IDs has been activated');
+    // Backstop: dedup on the saved file's full path
+    if (this._activeTerminals.find((terminal) => terminal.savedTargetPath === savedTargetPath)) {
+      console.warn(`Terminal for ${savedTargetPath} has been activated`);
       return;
     }
 

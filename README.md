@@ -75,3 +75,6 @@ No settings required
 - Allow running on React files now (if it is imported in an instatiable Svelte component file).
 - Allow debugging theme from vfm-ui-themes library or from voly-ui root.
 - Introduce multi-terminal terminology (allow dev to specify running multiple terminals for different builds or running only 1 instance as their machine's CPU allows).
+
+### 2.1.1
+- Fixed an issue where two components that shared the same filename but lived in different folders could not both be built — starting one would block the other. Identically named components can now be developed side by side.

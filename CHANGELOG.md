@@ -95,4 +95,6 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Allow debugging theme from vfm-ui-themes library or from voly-ui root.
 - Prioritise self-instantiation if found early (reduce wasted time on recursive tracing for source of import).
 - Cleanup unused / unreachable code.
+## [07/05/2026]
+- Tighten the duplicate-name check by comparing absolute paths instead of basenames. Previously, `src/1/Component.svelte` and `src/2/Component.svelte` collided in the visited-paths / active-terminal lookup, so kicking off a build for one would short-circuit the other. The collision lived in the instantiables resolution and source-of-import trace, both of which now key off absolute paths.
 <br />

@@ -228,6 +228,12 @@ class FrontendQuickDevExtension {
 			return;
 		}
 
+		// Skip heavy trace + build if this exact file is already being built
+		if (this._terminalFactoryInstance.hasActiveForPath(document.fileName)) {
+			console.warn(`[volyfequickdev] ${savedFileName} is already being built`);
+			return;
+		}
+
 		let selectedApproach: Instantiable[];
 
 		selectedApproach = this._isThemeFile(document) ? [{ fullPath: document.fileName, fileName: savedFileName }] : this._traceBuildableComponents(document.fileName);

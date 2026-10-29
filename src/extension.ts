@@ -10,6 +10,7 @@ import path from 'path';
 // Classes
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
+import SSE from './sse';
 import TunnelFactory from './tunnel/tunnelFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';

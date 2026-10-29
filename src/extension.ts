@@ -10,7 +10,6 @@ import path from 'path';
 // Classes
 import TerminalFactory from './terminalFactory';
 import KoaApp from './server';
-import SSE from './sse';
 import TunnelFactory from './tunnel/tunnelFactory';
 
 import { FolderView, ShareLocalView, SettingView } from './ui';
@@ -49,10 +48,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	// const hybridConnector = new RelayHybridConnectionFactory();
 	// LocalTunnel to expose local development to the world (for quick collaborative testing)
 	const tunnelFactory = new TunnelFactory();
-	// Server Sent Event
-	const sse = new SSE();
 	// Server
-	const server = new KoaApp(rootDirectory, sse); 
+	const server = new KoaApp(rootDirectory);
 	const extension = new FrontendQuickDevExtension(context, server, new TerminalFactory());
 	// UIs
 	const folderViewProvider = new FolderView(path.dirname(__dirname));
@@ -76,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable2 = UICommands.toDeactivateExtension(context);
 	const disposable3 = UICommands.toRefreshFileEntry(folderViewProvider);
 	/* eslint-disable @typescript-eslint/naming-convention */
-	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(webDirectory, pathToDevBuildsFolder, sse, extension);
+	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(webDirectory, pathToDevBuildsFolder);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveFileEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
@@ -143,8 +140,6 @@ class FrontendQuickDevExtension {
 	private _terminalFactoryInstance: TerminalFactory;
 	private _koaApp: KoaApp;
 	private _allowedLanguages: Array<string>;
-
-	public saveId: number = 0;
 
 	constructor(
 		context: vscode.ExtensionContext,

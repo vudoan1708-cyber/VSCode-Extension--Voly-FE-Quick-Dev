@@ -12,6 +12,7 @@ node_modules/**
 # !node_modules/@ngrok
 
 src/**
+dev-builds/**
 !src/ssl-certs
 .env
 .gitignore

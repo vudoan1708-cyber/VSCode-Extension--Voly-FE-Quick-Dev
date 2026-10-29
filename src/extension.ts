@@ -32,6 +32,9 @@ let rootDirectory = workspaceDirectory.endsWith('voly-ui')
 	? path.join(workspaceDirectory)
 	: path.join(workspaceDirectory, '..', '..');
 
+// Builds are output to frontend/web/build since the voly-ui restructure
+const webDirectory = path.join(rootDirectory, 'frontend', 'web');
+
 // Find the dev-builds folder from within the extension workspace
 const pathToDevBuildsFolder = path.join(__dirname, '..', DEV_BUILD_FOLDER);
 
@@ -72,7 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const disposable2 = UICommands.toDeactivateExtension(context);
 	const disposable3 = UICommands.toRefreshFileEntry(folderViewProvider);
 	/* eslint-disable @typescript-eslint/naming-convention */
-	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(rootDirectory as string, pathToDevBuildsFolder, sse, extension);
+	const [ disposable4_1, disposable4_2 ] = UICommands.toWatchDevBuildsFolderChangeAndUpdate(webDirectory, pathToDevBuildsFolder, sse, extension);
 	const disposable5 = UICommands.toRemoveDevBuildsFolder(pathToDevBuildsFolder);
 	const [ disposable6, disposable7 ] = UICommands.toRemoveFileEntries(pathToDevBuildsFolder, folderTreeView);
 	// Shareable Local
@@ -128,10 +131,10 @@ export function deactivate() {
 	if (!rootDirectory) {
 		return;
 	}
-	if (!fs.existsSync(`${rootDirectory}/build`)) {
+	if (!fs.existsSync(`${webDirectory}/build`)) {
 		return;
 	}
-	fs.rmSync(`${rootDirectory}/build`, { recursive: true, force: true });
+	fs.rmSync(`${webDirectory}/build`, { recursive: true, force: true });
 }
 
 class FrontendQuickDevExtension {
@@ -163,7 +166,7 @@ class FrontendQuickDevExtension {
 	}
 
 	private _isThemeFile(document: vscode.TextDocument) {
-		return document.languageId === 'json' && document.fileName.includes('voly-ui/libs/vfm-ui-themes') && document.fileName.endsWith('config.json');
+		return document.languageId === 'json' && document.fileName.includes('voly-ui/frontend/web/libs/vfm-ui-themes') && document.fileName.endsWith('config.json');
 	}
 
 	private _isFileAllowed(document: vscode.TextDocument) {

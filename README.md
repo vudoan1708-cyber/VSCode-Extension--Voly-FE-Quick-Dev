@@ -78,3 +78,6 @@ No settings required
 
 ### 2.1.1
 - Fixed an issue where two components that shared the same filename but lived in different folders could not both be built — starting one would block the other. Identically named components can now be developed side by side.
+
+### 2.1.2
+- Works with the restructured voly-ui, where the frontend lives under `frontend/web`: builds are picked up from `frontend/web/build` again, so they show in the folder explorer and on the `/dev-builds` endpoint, and theme files are recognised in their new location.

@@ -84,4 +84,6 @@ No settings required
 
 ### 2.1.3
 - Also runs on React files written in TypeScript (`.tsx`), not just `.jsx`, when they are imported in an instantiable Svelte component file.
+
+### 2.1.4
 - Never runs on test or Storybook files (`*.spec.*`, `*.test.*`, `*.stories.*`, `*.story.*`, or files under `__tests__` / `stories` folders), so saving a `.spec.tsx` or `.stories.tsx` no longer starts a build.

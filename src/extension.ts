@@ -169,6 +169,17 @@ class FrontendQuickDevExtension {
 		return this._allowedLanguages.includes(document.languageId) || this._isThemeFile(document);
 	}
 
+	// Test and Storybook files (e.g. Foo.spec.tsx, Foo.test.jsx, Foo.stories.tsx, anything under __tests__ or a stories folder)
+	// are never built, whatever their language
+	private _isTestOrStoryFile(document: vscode.TextDocument) {
+		const fileName = path.basename(document.fileName);
+		const segments = path.dirname(document.fileName).split(path.sep);
+
+		return /\.(spec|test|stories|story)\.[^.]+$/i.test(fileName)
+			|| segments.includes('__tests__')
+			|| document.fileName.includes('stories');
+	}
+
 	private _traceBuildableComponents(fileName: string): Instantiable[] {
 		let files: Instantiable[];
 
@@ -208,8 +219,12 @@ class FrontendQuickDevExtension {
 			console.warn('[volyfequickdev] Extension is not enabled');
 			return;
 		}
-		if (!this._isFileAllowed(document) || document.fileName.includes('stories')) {
+		if (!this._isFileAllowed(document)) {
 			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(', ')} files or config.json for themes`);
+			return;
+		}
+		if (this._isTestOrStoryFile(document)) {
+			console.warn(`[volyfequickdev] Skipping test / storybook file ${path.basename(document.fileName)}`);
 			return;
 		}
 

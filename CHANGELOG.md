@@ -101,4 +101,5 @@ All notable changes to the "volyfequickdev" extension will be documented in this
 - Follow the voly-ui restructure (frontend workspace moved under `frontend/web`). The extension now watches `frontend/web/build` (synced to `dev-builds`) instead of `build` at the voly-ui root, removes `frontend/web/build` on shutdown, and recognises theme files under `voly-ui/frontend/web/libs/vfm-ui-themes`.
 ## [23/11/2026]
 - Add `typescriptreact` to the allowed language IDs so the extension runs on saved `.tsx` files (previously only `.jsx` React files were accepted).
+- Skip test and Storybook files before tracing or building: basenames matching `*.spec.*`, `*.test.*`, `*.stories.*` or `*.story.*`, and anything under a `__tests__` folder (paths containing `stories` were already skipped). With `typescriptreact` allowed, saving `Foo.spec.tsx` would otherwise have built the component next to it.
 <br />

@@ -154,7 +154,7 @@ class FrontendQuickDevExtension {
 		this._koaApp.initialiseRoutes();
 		this._koaApp.serveStatic();
 
-		this._allowedLanguages = [ 'svelte', 'javascriptreact' ];
+		this._allowedLanguages = [ 'svelte', 'javascriptreact', 'typescriptreact' ];
 	}
 
 	private _isEnabled() {
@@ -209,7 +209,7 @@ class FrontendQuickDevExtension {
 			return;
 		}
 		if (!this._isFileAllowed(document) || document.fileName.includes('stories')) {
-			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(' and ')} files or config.json for themes`);
+			console.warn(`[volyfequickdev] Extension can only run on ${this._allowedLanguages.join(', ')} files or config.json for themes`);
 			return;
 		}
 

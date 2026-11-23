@@ -81,3 +81,6 @@ No settings required
 
 ### 2.1.2
 - Works with the restructured voly-ui, where the frontend lives under `frontend/web`: builds are picked up from `frontend/web/build` again, so they show in the folder explorer and on the `/dev-builds` endpoint, and theme files are recognised in their new location.
+
+### 2.1.3
+- Also runs on React files written in TypeScript (`.tsx`), not just `.jsx`, when they are imported in an instantiable Svelte component file.
